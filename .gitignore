@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# All generated run output (results/<run_id>/config.yaml, metadata.json,
+# diagnostics.csv, fields/, figures/, videos/, plus the legacy flat
+# raw/figures/summary dirs) is ignored except placeholder .gitkeep files.
+results/*/
+!results/raw/
+!results/figures/
+!results/summary/
+results/raw/*
+results/figures/*
+results/summary/*
+!results/raw/.gitkeep
+!results/figures/.gitkeep
+!results/summary/.gitkeep

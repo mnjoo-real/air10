@@ -1,0 +1,17 @@
+numpy>=1.24
+scipy>=1.11
+numba>=0.58
+matplotlib>=3.7
+pandas>=2.0
+scikit-image>=0.21
+pyyaml>=6.0
+tqdm>=4.65
+h5py>=3.9
+pytest>=7.4
+
+# optional: enables pressure.solve_pressure_poisson(method="cg") to use an
+# algebraic-multigrid preconditioner (the only one tested that converges
+# robustly for this problem, see README "Performance"). Without it, the
+# "cg" method falls back to a weak Jacobi preconditioner. Not required for
+# the default method="direct" path used everywhere else.
+pyamg>=5.0

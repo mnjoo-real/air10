@@ -1,0 +1,64 @@
+# Pilot physical simulation config (README "pilot physical simulation config").
+# Physical baseline geometry (README section 40): R_v=45mm, L_m=30mm,
+# D_m=7mm, H=50mm. RPM=500 (display/set RPM; no actual_rpm measured yet,
+# so the solver falls back to this with a printed warning -- README
+# section 33).
+#
+# IMPORTANT: forcing_tau_s below is an unvalidated placeholder (matches
+# configs/baseline.yaml), NOT a calibrated value -- see `calibrated: false`.
+# Do not treat any run from this config as a validated physical prediction
+# until scripts/calibrate_forcing.py has produced a real calibrated_forcing.yaml
+# from a measured vortex depth and that tau_s has been substituted in here.
+geometry:
+  vessel_radius_m: 0.045
+  vessel_height_m: 0.125
+  water_height_m: 0.050
+  air_height_m: 0.030
+  stirbar_length_m: 0.030
+  stirbar_diameter_m: 0.007
+  stirbar_center_z_m: 0.0035
+
+fluid:
+  water_density: 998.0
+  water_viscosity: 0.00100
+  air_density: 1.20
+  air_viscosity: 0.000018
+  surface_tension: 0.072
+  gravity: 9.81
+
+stirrer:
+  rpm: 500
+  actual_rpm: null   # not yet measured -- physics falls back to `rpm` with a warning
+  ramp_time_s: 0.3
+  forcing_tau_s: 0.005   # UNCALIBRATED placeholder, see header comment
+  forcing_smoothing_m: 0.001
+  calibrated: false
+
+grid:
+  dr_m: 0.0005
+  dz_m: 0.0005
+
+time:
+  t_end_s: 8.0
+  cfl: 0.30
+  dt_max_s: 0.0005
+
+levelset:
+  interface_width_cells: 1.5
+  reinitialize_every: 5
+  reinitialize_iterations: 3
+
+air_core:
+  contact_tolerance_cells: 2
+  persistence_rotations: 5
+
+steady_state:
+  enabled: true
+  window_s: 0.5
+  min_time_s: 1.0
+  relative_range_tolerance: 0.01
+  slope_tolerance_mm_per_s: 0.1
+  required_windows: 3
+
+output:
+  save_every_s: 0.02

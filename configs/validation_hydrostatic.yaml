@@ -1,0 +1,48 @@
+# Small/fast config for Figure 1 (hydrostatic equilibrium validation).
+# Deliberately NOT the physical baseline geometry -- small enough to run in
+# seconds so the visualization pipeline can be demonstrated end-to-end.
+# See README "Result Visualization" for why this must not be read as a
+# physical vortex-formation result.
+geometry:
+  vessel_radius_m: 0.024
+  vessel_height_m: 0.040
+  water_height_m: 0.018
+  air_height_m: 0.012
+  stirbar_length_m: 0.012
+  stirbar_diameter_m: 0.004
+  stirbar_center_z_m: 0.002
+
+fluid:
+  water_density: 998.0
+  water_viscosity: 0.00100
+  air_density: 1.20
+  air_viscosity: 0.000018
+  surface_tension: 0.072
+  gravity: 9.81
+
+stirrer:
+  rpm: 0
+  ramp_time_s: 0.05
+  forcing_tau_s: 0.01
+  forcing_smoothing_m: 0.001
+
+grid:
+  dr_m: 0.0015
+  dz_m: 0.0015
+
+time:
+  t_end_s: 0.01
+  cfl: 0.30
+  dt_max_s: 0.0002
+
+levelset:
+  interface_width_cells: 1.5
+  reinitialize_every: 5
+  reinitialize_iterations: 2
+
+air_core:
+  contact_tolerance_cells: 2
+  persistence_rotations: 5
+
+output:
+  save_every_s: 0.002

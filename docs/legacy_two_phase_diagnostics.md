@@ -1,3 +1,15 @@
+# Legacy Level-1B two-phase diffuse Level-Set solver — Session 1–7 history
+
+> **Archived verbatim** from the repository `README.md` as it stood before the
+> Level-1A single-phase redesign (2026-09-24). Nothing below this note has been
+> edited. The architecture source of truth is now `README_rewritten.md`; the
+> legacy solver described here remains runnable as
+> `physics.free_surface_model: two_phase_diffuse_ls` (the transition default).
+> Session-7 conclusions that remain binding are summarised in
+> `README_rewritten.md` section 21.
+
+---
+
 # KYPT / IYPT 2027 Problem 10 — Air Vortex
 ## Python-based simulation design for a magnetic-stirrer air core
 

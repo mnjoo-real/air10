@@ -1,0 +1,58 @@
+# Level 1A (single_phase_ls) Gate V2: flat hydrostatic free surface, no
+# stirring, sigma = 0. The water height 17.3 mm is deliberately off-grid
+# (neither on a cell center nor on a face) for dx = 1.5 mm.
+physics:
+  free_surface_model: single_phase_ls
+  extension_layers: 3
+
+geometry:
+  vessel_radius_m: 0.024
+  vessel_height_m: 0.040
+  water_height_m: 0.0173
+  air_height_m: 0.0127
+  stirbar_length_m: 0.012
+  stirbar_diameter_m: 0.004
+  stirbar_center_z_m: 0.002
+
+fluid:
+  water_density: 998.0
+  water_viscosity: 0.00100
+  air_density: 1.20          # unused by single_phase_ls (no air momentum)
+  air_viscosity: 0.000018    # unused by single_phase_ls
+  surface_tension: 0.0       # Milestone 1: sigma = 0 (sharp jump is Milestone D)
+  gravity: 9.81
+
+stirrer:
+  rpm: 0                     # stirrer forcing not connected in Milestone 1
+  ramp_time_s: 0.05
+  forcing_tau_s: 0.01
+  forcing_smoothing_m: 0.001
+
+grid:
+  dr_m: 0.0015
+  dz_m: 0.0015
+
+time:
+  t_end_s: 1.0
+  cfl: 0.30
+  dt_max_s: 0.0002
+
+levelset:
+  interface_width_cells: 1.5   # unused by single_phase_ls (no diffuse band)
+  reinitialize_every: 0        # 0 = off (README_rewritten 9.4)
+  reinitialize_iterations: 2
+  advection_scheme: muscl2
+  time_integrator: ssprk2
+  limiter: mc
+  # used only when reinitialize_every > 0 (Gate V5b/V5c, docs/level1a_single_phase.md sec. 7)
+  reinitialization_method: russo_smereka_subcell
+  reinitialization_order: 2
+  reinitialization_cfl: 0.45
+  reinitialization_trigger: periodic
+
+air_core:
+  contact_tolerance_cells: 2
+  persistence_rotations: 5
+
+output:
+  save_every_s: 0.05

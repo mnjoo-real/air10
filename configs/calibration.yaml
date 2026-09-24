@@ -1,0 +1,65 @@
+# Base config for scripts/calibrate_forcing.py trials. Uses a small/fast
+# geometry (same scale as the validation configs) so a multi-iteration
+# search completes quickly -- calibrate_forcing.py overrides rpm-> actual_rpm,
+# water_height_m, and forcing_tau_s per trial; everything else here is the
+# fixed physical setup for the calibration point.
+geometry:
+  vessel_radius_m: 0.024
+  vessel_height_m: 0.040
+  water_height_m: 0.018
+  air_height_m: 0.012
+  stirbar_length_m: 0.012
+  stirbar_diameter_m: 0.004
+  stirbar_center_z_m: 0.002
+
+fluid:
+  water_density: 998.0
+  water_viscosity: 0.00100
+  air_density: 1.20
+  air_viscosity: 0.000018
+  surface_tension: 0.072
+  gravity: 9.81
+
+stirrer:
+  rpm: 800          # placeholder: --actual-rpm overrides this per trial
+  ramp_time_s: 0.03
+  forcing_tau_s: 0.005   # placeholder: overridden by the search
+  forcing_smoothing_m: 0.001
+  calibrated: false
+
+grid:
+  dr_m: 0.0015
+  dz_m: 0.0015
+
+time:
+  t_end_s: 0.3
+  cfl: 0.30
+  dt_max_s: 0.0002
+
+levelset:
+  interface_width_cells: 1.5
+  reinitialize_every: 5
+  reinitialize_iterations: 2
+
+air_core:
+  contact_tolerance_cells: 2
+  persistence_rotations: 5
+
+steady_state:
+  enabled: true
+  window_s: 0.08
+  min_time_s: 0.25
+  relative_range_tolerance: 0.02
+  slope_tolerance_mm_per_s: 5.0
+  required_windows: 3
+
+output:
+  save_every_s: 0.01
+
+# Search-specific settings, read directly by calibrate_forcing.py (not part
+# of the core Config schema in README section 29).
+calibration:
+  tau_min_s: 0.0005
+  tau_max_s: 0.05
+  tolerance_depth_mm: 0.1
+  max_iterations: 20

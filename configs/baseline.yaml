@@ -1,0 +1,48 @@
+geometry:
+  vessel_radius_m: 0.045
+  vessel_height_m: 0.125
+
+  water_height_m: 0.050
+  air_height_m: 0.030
+
+  stirbar_length_m: 0.030
+  stirbar_diameter_m: 0.007
+  stirbar_center_z_m: 0.0035
+
+fluid:
+  water_density: 998.0
+  water_viscosity: 0.00100
+
+  air_density: 1.20
+  air_viscosity: 0.000018
+
+  surface_tension: 0.072
+  gravity: 9.81
+
+stirrer:
+  rpm: 900
+  ramp_time_s: 0.3
+
+  forcing_tau_s: 0.005
+  forcing_smoothing_m: 0.001
+
+grid:
+  dr_m: 0.0005
+  dz_m: 0.0005
+
+time:
+  t_end_s: 8.0
+  cfl: 0.30
+  dt_max_s: 0.0005
+
+levelset:
+  interface_width_cells: 1.5
+  reinitialize_every: 5
+  reinitialize_iterations: 3
+
+air_core:
+  contact_tolerance_cells: 2
+  persistence_rotations: 5
+
+output:
+  save_every_s: 0.02

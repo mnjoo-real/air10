@@ -1,0 +1,23 @@
+# Water-depth sweep (README section 19 / 20, Study B)
+base_config: configs/baseline.yaml
+
+water_heights_m:
+  - 0.020
+  - 0.030
+  - 0.040
+  - 0.050
+  - 0.060
+
+rpm_coarse:
+  - 300
+  - 500
+  - 700
+  - 900
+  - 1100
+  - 1300
+  - 1500
+
+bisection:
+  target_resolution_rpm: 5
+  max_iterations: 8
+  persistence_rotations: 5

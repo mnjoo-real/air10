@@ -2,11 +2,11 @@
 
 > **Archived verbatim** from the repository `README.md` as it stood before the
 > Level-1A single-phase redesign (2026-09-24). Nothing below this note has been
-> edited. The architecture source of truth is now `README_rewritten.md`; the
+> edited. The architecture source of truth is now `README.md`; the
 > legacy solver described here remains runnable as
 > `physics.free_surface_model: two_phase_diffuse_ls` (the transition default).
 > Session-7 conclusions that remain binding are summarised in
-> `README_rewritten.md` section 21.
+> `README.md` section 21.
 
 ---
 
@@ -30,8 +30,8 @@ Current stirrer:
 - Included stir bar: **3 cm**
 - Usable stir bar length: up to **5 cm**
 - Current stir bar:
-  - length \(L_m = 30\ \mathrm{mm}\)
-  - diameter \(D_m = 7\ \mathrm{mm}\)
+  - length $L_m = 30\ \mathrm{mm}$
+  - diameter $D_m = 7\ \mathrm{mm}$
 
 The MSH-20D values above come from the uploaded DAIHAN catalog (`wisd-n-125.pdf`, p. 125).
 
@@ -40,9 +40,9 @@ The MSH-20D values above come from the uploaded DAIHAN catalog (`wisd-n-125.pdf`
 Current vessel:
 
 - **DURAN® low-form beaker with spout, 600 mL**
-- nominal diameter: \(D_v = 90\ \mathrm{mm}\)
-- nominal radius: \(R_v = 45\ \mathrm{mm}\)
-- height: \(125\ \mathrm{mm}\)
+- nominal diameter: $D_v = 90\ \mathrm{mm}$
+- nominal radius: $R_v = 45\ \mathrm{mm}$
+- height: $125\ \mathrm{mm}$
 
 > **Important:** the catalog diameter may not be the exact internal diameter.  
 > For final CFD input, measure the **internal diameter** directly.
@@ -51,27 +51,27 @@ Current vessel:
 
 For the first simulation:
 
-\[
+```math
 R_v = 45\ \mathrm{mm},\qquad
 L_m = 30\ \mathrm{mm},\qquad
 D_m = 7\ \mathrm{mm}
-\]
+```
 
 The stir-bar half-length is
 
-\[
+```math
 R_m=\frac{L_m}{2}=15\ \mathrm{mm}.
-\]
+```
 
 Assuming a circular 7 mm cross-section resting on the bottom,
 
-\[
+```math
 z_{\mathrm{bar,center}}\approx 3.5\ \mathrm{mm},
 \qquad
 z_{\mathrm{bar,top}}\approx 7\ \mathrm{mm}.
-\]
+```
 
-This matters because the air core does **not** need to reach \(z=0\); it only needs to reach the rotating bar.
+This matters because the air core does **not** need to reach $z=0$; it only needs to reach the rotating bar.
 
 ---
 
@@ -81,20 +81,20 @@ The simulation should answer four primary questions.
 
 ### Q1. How does vortex depth depend on rotation rate?
 
-\[
+```math
 d_\infty = f(N)
-\]
+```
 
 where
 
-- \(N\): actual stir-bar rotation rate
-- \(d_\infty\): steady or statistically steady vortex depth
+- $N$: actual stir-bar rotation rate
+- $d_\infty$: steady or statistically steady vortex depth
 
 A simple vortex model predicts approximately
 
-\[
+```math
 d_\infty\propto N^2
-\]
+```
 
 over a limited regime.
 
@@ -104,17 +104,17 @@ over a limited regime.
 
 Define
 
-\[
+```math
 N_c
-\]
+```
 
 as the smallest rotation rate for which the top-connected air region reaches the stir bar and remains connected for a prescribed persistence time.
 
 The central target is
 
-\[
+```math
 N_c=f(H,\mu,\rho,\sigma,L_m,D_m,R_v,\ldots).
-\]
+```
 
 ---
 
@@ -122,23 +122,23 @@ N_c=f(H,\mu,\rho,\sigma,L_m,D_m,R_v,\ldots).
 
 Measure or simulate
 
-\[
+```math
 N_c(H).
-\]
+```
 
 A first-order model suggests a square-root-type trend,
 
-\[
+```math
 N_c\propto \sqrt{H_{\mathrm{eff}}},
-\]
+```
 
 where
 
-\[
+```math
 H_{\mathrm{eff}}
 =
 H-z_{\mathrm{bar,top}}.
-\]
+```
 
 ---
 
@@ -146,10 +146,10 @@ H-z_{\mathrm{bar,top}}.
 
 Possible outputs:
 
-\[
+```math
 r_{\mathrm{air}}(z),\qquad
 D_{\mathrm{air}}(z)=2r_{\mathrm{air}}(z),
-\]
+```
 
 as functions of RPM, viscosity, water depth, and stir-bar geometry.
 
@@ -176,7 +176,7 @@ Recommended use:
 | Level | Model | Main purpose | Cost |
 |---|---|---|---|
 | 0 | reduced Rankine-type model | estimate useful RPM range | very low |
-| 1 | 2D axisymmetric CFD + swirl + Level Set | parameter sweep and \(N_c\) prediction | moderate |
+| 1 | 2D axisymmetric CFD + swirl + Level Set | parameter sweep and $N_c$ prediction | moderate |
 | 2 | 3D SPH with rotating rod | validate non-axisymmetric rod effects | high |
 
 The main research model should be **Level 1**.
@@ -189,66 +189,66 @@ This model is not a CFD solution. It is used to estimate parameter ranges before
 
 Let
 
-- \(\Omega_m\): actual stir-bar angular velocity
-- \(\omega_f\): effective angular velocity of the vortex core
-- \(a\): effective vortex-core radius
-- \(\beta\): fluid–stirrer coupling coefficient
+- $\Omega_m$: actual stir-bar angular velocity
+- $\omega_f$: effective angular velocity of the vortex core
+- $a$: effective vortex-core radius
+- $\beta$: fluid–stirrer coupling coefficient
 
 with
 
-\[
+```math
 \Omega_m=\frac{2\pi N}{60},
-\]
+```
 
 and
 
-\[
+```math
 \omega_f=\beta\Omega_m.
-\]
+```
 
 A Rankine-type estimate gives
 
-\[
+```math
 d\sim\frac{\omega_f^2a^2}{g}.
-\]
+```
 
 Therefore
 
-\[
+```math
 d\sim
 \frac{\beta^2\Omega_m^2a^2}{g}.
-\]
+```
 
 An approximate air-core threshold is
 
-\[
+```math
 d_c\approx H-z_{\mathrm{bar,top}},
-\]
+```
 
 which gives
 
-\[
+```math
 \boxed{
 \Omega_c
 \sim
 \frac{\sqrt{g(H-z_{\mathrm{bar,top}})}}{\beta a}
 }
-\]
+```
 
 or
 
-\[
+```math
 \boxed{
 N_c
 \sim
 \frac{60}{2\pi}
 \frac{\sqrt{g(H-z_{\mathrm{bar,top}})}}{\beta a}
 }.
-\]
+```
 
 ### Important limitation
 
-\(a\) and \(\beta\) are **effective parameters**, not directly equal to stir-bar radius or a universal constant.
+$a$ and $\beta$ are **effective parameters**, not directly equal to stir-bar radius or a universal constant.
 
 Use this model only for:
 
@@ -266,11 +266,11 @@ Do not use it as the final quantitative model.
 
 The physical stir bar is not axisymmetric, but most of the air core is approximately centered on the vessel axis.
 
-A 2D \((r,z)\) model with all three velocity components
+A 2D $(r,z)$ model with all three velocity components
 
-\[
+```math
 u_r,\quad u_z,\quad u_\theta
-\]
+```
 
 captures:
 
@@ -291,59 +291,59 @@ The missing 3D stir-bar geometry is replaced by an **effective azimuthal momentu
 
 Use cylindrical coordinates:
 
-\[
+```math
 (r,\theta,z)
-\]
+```
 
 with
 
-- \(r=0\): vessel axis
-- \(z=0\): beaker bottom
-- \(z=H\): initial water surface
+- $r=0$: vessel axis
+- $z=0$: beaker bottom
+- $z=H$: initial water surface
 
 Axisymmetry means
 
-\[
+```math
 \frac{\partial}{\partial\theta}=0,
-\]
+```
 
 but
 
-\[
+```math
 u_\theta\neq 0.
-\]
+```
 
 Computational domain:
 
-\[
+```math
 0\le r\le R_v
-\]
+```
 
 and
 
-\[
+```math
 0\le z\le Z_{\max}.
-\]
+```
 
 Choose
 
-\[
+```math
 Z_{\max}=H+H_{\mathrm{air}},
-\]
+```
 
 with typically
 
-\[
+```math
 H_{\mathrm{air}}=20\text{–}30\ \mathrm{mm}.
-\]
+```
 
-Example for \(H=50\ \mathrm{mm}\):
+Example for $H=50\ \mathrm{mm}$:
 
-\[
+```math
 0\le r\le45\ \mathrm{mm},
 \qquad
 0\le z\le80\ \mathrm{mm}.
-\]
+```
 
 ---
 
@@ -353,7 +353,7 @@ Example for \(H=50\ \mathrm{mm}\):
 
 For axisymmetric flow,
 
-\[
+```math
 \boxed{
 \frac{1}{r}
 \frac{\partial (ru_r)}{\partial r}
@@ -361,7 +361,7 @@ For axisymmetric flow,
 \frac{\partial u_z}{\partial z}
 =0
 }
-\]
+```
 
 ---
 
@@ -369,7 +369,7 @@ For axisymmetric flow,
 
 The compact one-fluid two-phase form is
 
-\[
+```math
 \rho
 \left(
 \frac{\partial\mathbf u}{\partial t}
@@ -392,16 +392,16 @@ The compact one-fluid two-phase form is
 \mathbf F_\sigma
 +
 \mathbf F_{\mathrm{stir}}.
-\]
+```
 
 Here
 
-- \(\rho\): local density
-- \(\mu\): local dynamic viscosity
-- \(p\): pressure
-- \(\mathbf g=(0,0,-g)\)
-- \(\mathbf F_\sigma\): surface-tension force
-- \(\mathbf F_{\mathrm{stir}}\): effective stir-bar forcing
+- $\rho$: local density
+- $\mu$: local dynamic viscosity
+- $p$: pressure
+- $\mathbf g=(0,0,-g)$
+- $\mathbf F_\sigma$: surface-tension force
+- $\mathbf F_{\mathrm{stir}}$: effective stir-bar forcing
 
 ---
 
@@ -411,7 +411,7 @@ The important swirl terms are:
 
 ### Radial
 
-\[
+```math
 \frac{\partial u_r}{\partial t}
 +
 u_r\frac{\partial u_r}{\partial r}
@@ -423,19 +423,19 @@ u_z\frac{\partial u_r}{\partial z}
 -\frac{1}{\rho}\frac{\partial p}{\partial r}
 +\text{viscous terms}
 +f_r.
-\]
+```
 
 The term
 
-\[
+```math
 -\frac{u_\theta^2}{r}
-\]
+```
 
 is responsible for the radial centrifugal-pressure balance.
 
 ### Azimuthal
 
-\[
+```math
 \frac{\partial u_\theta}{\partial t}
 +
 u_r\frac{\partial u_\theta}{\partial r}
@@ -447,11 +447,11 @@ u_z\frac{\partial u_\theta}{\partial z}
 \text{viscous terms}
 +
 f_\theta.
-\]
+```
 
 ### Axial
 
-\[
+```math
 \frac{\partial u_z}{\partial t}
 +
 u_r\frac{\partial u_z}{\partial r}
@@ -463,7 +463,7 @@ u_z\frac{\partial u_z}{\partial z}
 \text{viscous terms}
 -g
 +f_z.
-\]
+```
 
 ---
 
@@ -471,37 +471,37 @@ u_z\frac{\partial u_z}{\partial z}
 
 For a nearly steady rotating flow,
 
-\[
+```math
 \frac{\partial p}{\partial r}
 \approx
 \rho\frac{u_\theta^2}{r}.
-\]
+```
 
 Thus pressure increases with radius and is lower near the axis.
 
 At a free surface,
 
-\[
+```math
 p\approx p_{\mathrm{atm}}.
-\]
+```
 
 The surface therefore moves downward near the low-pressure center.
 
 A simplified free-surface slope relation is
 
-\[
+```math
 \boxed{
 g\frac{d\eta}{dr}
 \approx
 \frac{u_\theta^2}{r}
 }
-\]
+```
 
 where
 
-\[
+```math
 z=\eta(r)
-\]
+```
 
 is the free-surface profile.
 
@@ -513,27 +513,27 @@ This relation provides a useful diagnostic check for the numerical solution.
 
 Define a Level Set function
 
-\[
+```math
 \phi(r,z,t).
-\]
+```
 
 Convention:
 
-\[
+```math
 \phi<0:\text{ water},
-\]
+```
 
-\[
+```math
 \phi>0:\text{ air},
-\]
+```
 
-\[
+```math
 \phi=0:\text{ air–water interface}.
-\]
+```
 
 The interface is advected by
 
-\[
+```math
 \boxed{
 \frac{\partial\phi}{\partial t}
 +
@@ -542,7 +542,7 @@ u_r\frac{\partial\phi}{\partial r}
 u_z\frac{\partial\phi}{\partial z}
 =0
 }
-\]
+```
 
 because the problem is axisymmetric.
 
@@ -550,29 +550,29 @@ because the problem is axisymmetric.
 
 ## 9.1 Material properties
 
-Use a smoothed Heaviside function \(H_\epsilon(\phi)\):
+Use a smoothed Heaviside function $H_\epsilon(\phi)$:
 
-\[
+```math
 \rho(\phi)
 =
 \rho_w
 +
 (\rho_a-\rho_w)H_\epsilon(\phi),
-\]
+```
 
-\[
+```math
 \mu(\phi)
 =
 \mu_w
 +
 (\mu_a-\mu_w)H_\epsilon(\phi).
-\]
+```
 
 A common smooth transition width is
 
-\[
+```math
 \epsilon\approx1.5\Delta x.
-\]
+```
 
 ---
 
@@ -580,24 +580,24 @@ A common smooth transition width is
 
 Unit normal:
 
-\[
+```math
 \mathbf n
 =
 \frac{\nabla\phi}
 {|\nabla\phi|+\varepsilon_n}.
-\]
+```
 
 Curvature:
 
-\[
+```math
 \kappa
 =
 \nabla\cdot\mathbf n.
-\]
+```
 
 Continuum Surface Force form:
 
-\[
+```math
 \boxed{
 \mathbf F_\sigma
 =
@@ -606,29 +606,29 @@ Continuum Surface Force form:
 \delta_\epsilon(\phi)
 \mathbf n
 }
-\]
+```
 
 where
 
-- \(\sigma\): water–air surface tension
-- \(\delta_\epsilon\): smoothed delta function around the interface
+- $\sigma$: water–air surface tension
+- $\delta_\epsilon$: smoothed delta function around the interface
 
 ---
 
 ## 9.3 Level Set reinitialization
 
-Numerical advection distorts \(|\nabla\phi|=1\).
+Numerical advection distorts $|\nabla\phi|=1$.
 
-Periodically solve in pseudo-time \(\tau\):
+Periodically solve in pseudo-time $\tau$:
 
-\[
+```math
 \frac{\partial\phi}{\partial\tau}
 =
 S(\phi_0)
 \left(
 1-|\nabla\phi|
 \right)
-\]
+```
 
 for several small pseudo-time iterations.
 
@@ -646,25 +646,25 @@ Replace the rod with a smooth bottom forcing zone.
 
 Approximate swept radial region:
 
-\[
+```math
 0\le r\lesssim R_m=15\ \mathrm{mm}.
-\]
+```
 
 Approximate vertical region:
 
-\[
+```math
 0\le z\lesssim D_m=7\ \mathrm{mm}.
-\]
+```
 
 Define a smooth mask
 
-\[
+```math
 0\le\chi(r,z)\le1.
-\]
+```
 
 Example:
 
-\[
+```math
 \chi(r,z)
 =
 \frac12
@@ -682,7 +682,7 @@ Example:
 \frac{z-D_m}{\epsilon_f}
 \right)
 \right].
-\]
+```
 
 ---
 
@@ -690,15 +690,15 @@ Example:
 
 Target solid-body speed:
 
-\[
+```math
 u_{\theta,\mathrm{target}}
 =
 \Omega_m r.
-\]
+```
 
 Use relaxation forcing:
 
-\[
+```math
 \boxed{
 f_\theta
 =
@@ -709,25 +709,25 @@ u_{\theta,\mathrm{target}}-u_\theta
 \tau_s
 }
 }
-\]
+```
 
 where
 
-\[
+```math
 \Omega_m=\frac{2\pi N}{60}.
-\]
+```
 
 Parameter:
 
-- \(\tau_s\): effective stirrer-to-fluid momentum-transfer timescale
+- $\tau_s$: effective stirrer-to-fluid momentum-transfer timescale
 
-Smaller \(\tau_s\):
+Smaller $\tau_s$:
 
 - stronger coupling
 - larger swirl
 - deeper vortex
 
-Larger \(\tau_s\):
+Larger $\tau_s$:
 
 - weaker coupling
 - smaller swirl
@@ -735,17 +735,17 @@ Larger \(\tau_s\):
 
 ### Calibration
 
-\(\tau_s\) is **not known a priori**.
+$\tau_s$ is **not known a priori**.
 
 Recommended procedure:
 
 1. choose one moderate RPM condition below air-core onset
 2. measure experimental vortex depth
-3. adjust \(\tau_s\) until simulated depth matches that one condition
-4. freeze \(\tau_s\)
+3. adjust $\tau_s$ until simulated depth matches that one condition
+4. freeze $\tau_s$
 5. predict all remaining RPM and water-depth conditions
 
-Do not recalibrate \(\tau_s\) for each RPM.
+Do not recalibrate $\tau_s$ for each RPM.
 
 ---
 
@@ -755,30 +755,30 @@ Baseline at approximately room temperature:
 
 | Property | Water | Air |
 |---|---:|---:|
-| Density \(\rho\) | \(998\ \mathrm{kg/m^3}\) | \(1.2\ \mathrm{kg/m^3}\) |
-| Dynamic viscosity \(\mu\) | \(1.00\times10^{-3}\ \mathrm{Pa\,s}\) | \(1.8\times10^{-5}\ \mathrm{Pa\,s}\) |
+| Density $\rho$ | $998\ \mathrm{kg/m^3}$ | $1.2\ \mathrm{kg/m^3}$ |
+| Dynamic viscosity $\mu$ | $1.00\times10^{-3}\ \mathrm{Pa\,s}$ | $1.8\times10^{-5}\ \mathrm{Pa\,s}$ |
 
 Water–air surface tension:
 
-\[
+```math
 \sigma\approx0.072\ \mathrm{N/m}.
-\]
+```
 
 Gravity:
 
-\[
+```math
 g=9.81\ \mathrm{m/s^2}.
-\]
+```
 
 These should be updated for the actual measured liquid temperature.
 
 If glycerol is added, update **all** of
 
-\[
+```math
 \rho,\qquad
 \mu,\qquad
 \sigma,
-\]
+```
 
 not viscosity alone.
 
@@ -786,43 +786,43 @@ not viscosity alone.
 
 # 12. Boundary conditions
 
-## Axis \(r=0\)
+## Axis $r=0$
 
-\[
+```math
 u_r=0,
-\]
+```
 
-\[
+```math
 u_\theta=0,
-\]
+```
 
-\[
+```math
 \frac{\partial u_z}{\partial r}=0,
-\]
+```
 
-\[
+```math
 \frac{\partial p}{\partial r}=0.
-\]
+```
 
 ---
 
-## Vessel wall \(r=R_v\)
+## Vessel wall $r=R_v$
 
 No slip:
 
-\[
+```math
 u_r=u_\theta=u_z=0.
-\]
+```
 
 ---
 
-## Bottom \(z=0\)
+## Bottom $z=0$
 
 No slip:
 
-\[
+```math
 u_r=u_\theta=u_z=0.
-\]
+```
 
 The stirrer effect is introduced through the volumetric forcing zone above the bottom.
 
@@ -832,15 +832,15 @@ The stirrer effect is introduced through the volumetric forcing zone above the b
 
 Use an atmospheric pressure opening:
 
-\[
+```math
 p=p_{\mathrm{atm}}.
-\]
+```
 
 In gauge pressure,
 
-\[
+```math
 p=0.
-\]
+```
 
 Use zero-gradient or open-boundary treatment for velocity so that air can adjust without artificial pressurization.
 
@@ -850,52 +850,52 @@ Use zero-gradient or open-boundary treatment for velocity so that air can adjust
 
 At
 
-\[
+```math
 t=0
-\]
+```
 
 set
 
-\[
+```math
 \mathbf u=0.
-\]
+```
 
 Water:
 
-\[
+```math
 z<H.
-\]
+```
 
 Air:
 
-\[
+```math
 z>H.
-\]
+```
 
 Level Set initialization:
 
-\[
+```math
 \phi(r,z,0)=z-H.
-\]
+```
 
 The stirrer should preferably be ramped rather than switched instantaneously from 0 to full RPM.
 
 Example smooth ramp:
 
-\[
+```math
 \Omega(t)
 =
 \Omega_{\mathrm{target}}
 \left[
 1-\exp\left(-\frac{t}{t_r}\right)
 \right].
-\]
+```
 
 Typical initial guess:
 
-\[
+```math
 t_r=0.2\text{–}0.5\ \mathrm{s}.
-\]
+```
 
 If the experimental startup curve is measured, use that instead.
 
@@ -921,33 +921,33 @@ For every time step:
 
 Compute
 
-\[
+```math
 \rho(\phi),\qquad\mu(\phi).
-\]
+```
 
 ### Step 2 — interface geometry
 
 Compute
 
-\[
+```math
 \mathbf n,\qquad
 \kappa,\qquad
 \mathbf F_\sigma.
-\]
+```
 
 ### Step 3 — predictor velocity
 
 Calculate provisional velocity
 
-\[
+```math
 \mathbf u^*
-\]
+```
 
 without the new pressure.
 
 Symbolically,
 
-\[
+```math
 \frac{\mathbf u^*-\mathbf u^n}{\Delta t}
 =
 -\mathbf u^n\cdot\nabla\mathbf u^n
@@ -959,13 +959,13 @@ Symbolically,
 \frac{\mathbf F_\sigma}{\rho}
 +
 \mathbf F_{\mathrm{stir}}.
-\]
+```
 
 ### Step 4 — pressure Poisson equation
 
 Enforce incompressibility through
 
-\[
+```math
 \boxed{
 \nabla\cdot
 \left(
@@ -975,11 +975,11 @@ Enforce incompressibility through
 \frac{1}{\Delta t}
 \nabla\cdot\mathbf u^*
 }
-\]
+```
 
 ### Step 5 — velocity correction
 
-\[
+```math
 \boxed{
 \mathbf u^{n+1}
 =
@@ -989,18 +989,18 @@ Enforce incompressibility through
 \frac{1}{\rho}
 \nabla p^{n+1}
 }
-\]
+```
 
 ### Step 6 — Level Set advection
 
-\[
+```math
 \phi^{n+1}
 =
 \phi^n
 -
 \Delta t\,
 \mathbf u^{n+1}\cdot\nabla\phi.
-\]
+```
 
 ### Step 7 — reinitialization
 
@@ -1025,29 +1025,29 @@ Measure:
 
 Recommended initial uniform grid:
 
-\[
+```math
 \Delta r=\Delta z=0.5\ \mathrm{mm}.
-\]
+```
 
 For
 
-\[
+```math
 R_v=45\ \mathrm{mm},
 \quad
 H=50\ \mathrm{mm},
 \quad
 H_{\mathrm{air}}=30\ \mathrm{mm},
-\]
+```
 
 this gives approximately
 
-\[
+```math
 N_r=90,
 \qquad
 N_z=160,
-\]
+```
 
-or roughly \(1.4\times10^4\) cells.
+or roughly $1.4\times10^4$ cells.
 
 This is small enough for Python.
 
@@ -1057,34 +1057,34 @@ This is small enough for Python.
 
 At minimum compare
 
-\[
+```math
 \Delta x=
 1.0,\ 0.5,\ 0.25\ \mathrm{mm}
-\]
+```
 
 for selected representative conditions.
 
 Track convergence of:
 
-\[
+```math
 d_\infty
-\]
+```
 
 and
 
-\[
+```math
 N_c.
-\]
+```
 
 Suggested acceptance condition:
 
-\[
+```math
 \frac{|d_{\mathrm{fine}}-d_{\mathrm{medium}}|}
 {d_{\mathrm{fine}}}
 <5\%
-\]
+```
 
-and similarly for \(N_c\).
+and similarly for $N_c$.
 
 ---
 
@@ -1094,7 +1094,7 @@ Use an adaptive time step.
 
 ## Convective constraint
 
-\[
+```math
 \Delta t_{\mathrm{adv}}
 \le
 C_{\mathrm{CFL}}
@@ -1103,24 +1103,24 @@ C_{\mathrm{CFL}}
 \frac{\Delta r}{|u_r|+\varepsilon},
 \frac{\Delta z}{|u_z|+\varepsilon}
 \right).
-\]
+```
 
 Use initially
 
-\[
+```math
 C_{\mathrm{CFL}}\approx0.2\text{–}0.4.
-\]
+```
 
 ---
 
 ## Viscous constraint for explicit diffusion
 
-\[
+```math
 \Delta t_\nu
 \lesssim
 C_\nu
 \frac{\rho\Delta x^2}{\mu}.
-\]
+```
 
 ---
 
@@ -1128,18 +1128,18 @@ C_\nu
 
 Surface tension can impose a stricter limit:
 
-\[
+```math
 \Delta t_\sigma
 \lesssim
 C_\sigma
 \sqrt{
 \frac{\rho\Delta x^3}{\sigma}
 }.
-\]
+```
 
 Use
 
-\[
+```math
 \boxed{
 \Delta t
 =
@@ -1151,20 +1151,20 @@ Use
 \Delta t_{\mathrm{forcing}}
 )
 }
-\]
+```
 
 with
 
-\[
+```math
 \Delta t_{\mathrm{forcing}}
 \ll\tau_s.
-\]
+```
 
-For \(\Delta x=0.5\ \mathrm{mm}\), a practical first test range is approximately
+For $\Delta x=0.5\ \mathrm{mm}$, a practical first test range is approximately
 
-\[
+```math
 10^{-4}\text{–}5\times10^{-4}\ \mathrm{s},
-\]
+```
 
 but the solver should determine the step adaptively.
 
@@ -1176,21 +1176,21 @@ Because definitions vary in the literature, always state the exact definition us
 
 Let the characteristic radius be the stir-bar half-length
 
-\[
+```math
 R_m=15\ \mathrm{mm}.
-\]
+```
 
 ---
 
 ## Rotational Reynolds number
 
-\[
+```math
 \boxed{
 Re_\Omega
 =
 \frac{\rho\Omega R_m^2}{\mu}
 }
-\]
+```
 
 It compares rotational inertia with viscosity.
 
@@ -1198,13 +1198,13 @@ It compares rotational inertia with viscosity.
 
 ## Rotational Froude number
 
-\[
+```math
 \boxed{
 Fr_\Omega
 =
 \frac{\Omega^2R_m}{g}
 }
-\]
+```
 
 It compares rotational/centrifugal acceleration with gravity.
 
@@ -1212,13 +1212,13 @@ It compares rotational/centrifugal acceleration with gravity.
 
 ## Weber number
 
-\[
+```math
 \boxed{
 We_\Omega
 =
 \frac{\rho\Omega^2R_m^3}{\sigma}
 }
-\]
+```
 
 It compares rotational inertia with surface tension.
 
@@ -1226,12 +1226,12 @@ It compares rotational inertia with surface tension.
 
 ## Bond number
 
-\[
+```math
 \boxed{
 Bo=
 \frac{\rho gR_m^2}{\sigma}
 }
-\]
+```
 
 It compares gravity with surface tension.
 
@@ -1241,64 +1241,64 @@ It compares gravity with surface tension.
 
 Water-depth ratio:
 
-\[
+```math
 \boxed{
 H^*=\frac{H}{R_m}
 }
-\]
+```
 
 Confinement ratio:
 
-\[
+```math
 \boxed{
 C=\frac{R_m}{R_v}
 }
-\]
+```
 
 For the current geometry,
 
-\[
+```math
 C=\frac{15}{45}=0.333.
-\]
+```
 
 Bar aspect ratio:
 
-\[
+```math
 \boxed{
 AR=\frac{L_m}{D_m}
 =
 \frac{30}{7}
 \approx4.29.
 }
-\]
+```
 
 ---
 
 # 18. RPM conversion
 
-\[
+```math
 \boxed{
 \Omega=\frac{2\pi N}{60}
 }
-\]
+```
 
-where \(N\) is in rpm.
+where $N$ is in rpm.
 
 For the MSH-20D:
 
-\[
+```math
 80\le N\le1500\ \mathrm{rpm}.
-\]
+```
 
 Thus
 
-\[
+```math
 8.38\lesssim\Omega\lesssim157.1\ \mathrm{rad/s}.
-\]
+```
 
 At 1500 rpm, the nominal stir-bar tip speed is
 
-\[
+```math
 U_{\mathrm{tip}}
 =
 \Omega R_m
@@ -1306,7 +1306,7 @@ U_{\mathrm{tip}}
 157.1\times0.015
 \approx
 2.36\ \mathrm{m/s}.
-\]
+```
 
 > This uses actual stir-bar RPM.  
 > The displayed stirrer setting should not automatically be assumed to equal actual bar RPM at high load.
@@ -1317,14 +1317,14 @@ U_{\mathrm{tip}}
 
 Recommended first sweep:
 
-\[
+```math
 H=
 20,\ 30,\ 40,\ 50,\ 60\ \mathrm{mm}.
-\]
+```
 
 If the 90 mm diameter is treated as an internal cylindrical diameter, approximate volumes are:
 
-| \(H\) | approximate volume |
+| $H$ | approximate volume |
 |---:|---:|
 | 20 mm | 127 mL |
 | 30 mm | 191 mL |
@@ -1344,12 +1344,12 @@ Do not initially run every 5 rpm.
 
 Use a coarse sweep:
 
-\[
+```math
 N=
 300,\ 500,\ 700,\ 900,\ 1100,\ 1300,\ 1500\ \mathrm{rpm}.
-\]
+```
 
-For each \(H\), find the interval containing the transition.
+For each $H$, find the interval containing the transition.
 
 Example:
 
@@ -1368,9 +1368,9 @@ and repeatedly bisect the interval.
 
 Continue until the uncertainty is about the experimental setting resolution:
 
-\[
+```math
 \Delta N_c\sim5\text{–}10\ \mathrm{rpm}.
-\]
+```
 
 ---
 
@@ -1378,37 +1378,37 @@ Continue until the uncertainty is about the experimental setting resolution:
 
 Let the initial undisturbed water surface be
 
-\[
+```math
 z=H.
-\]
+```
 
 Let the lowest point of the **top-connected central air region** be
 
-\[
+```math
 z_{\mathrm{tip}}.
-\]
+```
 
 Then
 
-\[
+```math
 \boxed{
 d(t)=H-z_{\mathrm{tip}}(t)
 }
-\]
+```
 
 and
 
-\[
+```math
 d_\infty
-\]
+```
 
 is the long-time or time-averaged depth after transients have decayed.
 
 To avoid selecting a wall meniscus, determine the tip within a central region such as
 
-\[
+```math
 r\le R_m.
-\]
+```
 
 ---
 
@@ -1420,40 +1420,40 @@ Use a connectivity criterion.
 
 ### Binary air mask
 
-\[
+```math
 A(r,z)=
 \begin{cases}
 1,&\phi>0\\
 0,&\phi\le0
 \end{cases}
-\]
+```
 
 Find the connected air component touching the top boundary.
 
 Call it
 
-\[
+```math
 A_{\mathrm{top}}.
-\]
+```
 
 Define an expanded stir-bar target region
 
-\[
+```math
 \mathcal B_\delta
-\]
+```
 
 within approximately 1–2 grid cells of the effective stir-bar region.
 
 The air core is geometrically connected when
 
-\[
+```math
 \boxed{
 A_{\mathrm{top}}
 \cap
 \mathcal B_\delta
 \neq\emptyset
 }
-\]
+```
 
 ---
 
@@ -1463,27 +1463,27 @@ To exclude momentary interface contact, require persistence for several stir-bar
 
 For example:
 
-\[
+```math
 \boxed{
 t_{\mathrm{connected}}
 \ge
 5T
 }
-\]
+```
 
 where
 
-\[
+```math
 T=\frac{60}{N}.
-\]
+```
 
 Therefore
 
-\[
+```math
 t_{\mathrm{connected}}
 \ge
 \frac{300}{N}.
-\]
+```
 
 This defines a reproducible critical RPM.
 
@@ -1491,23 +1491,23 @@ This defines a reproducible critical RPM.
 
 # 23. Air-core radius
 
-At a given height \(z\), identify the central interval belonging to the top-connected air component.
+At a given height $z$, identify the central interval belonging to the top-connected air component.
 
 If its radial extent is
 
-\[
+```math
 0\le r\le r_{\mathrm{air}}(z),
-\]
+```
 
 then
 
-\[
+```math
 \boxed{
 D_{\mathrm{air}}(z)
 =
 2r_{\mathrm{air}}(z).
 }
-\]
+```
 
 Store this profile after the core forms.
 
@@ -1519,44 +1519,44 @@ Every run should automatically save:
 
 ### Free-surface quantities
 
-\[
+```math
 d(t)
-\]
+```
 
-\[
+```math
 d_\infty
-\]
+```
 
-\[
+```math
 z_{\mathrm{tip}}(t)
-\]
+```
 
-\[
+```math
 r_{\mathrm{air}}(z,t)
-\]
+```
 
 ### Flow quantities
 
-\[
+```math
 u_r(r,z,t)
-\]
+```
 
-\[
+```math
 u_z(r,z,t)
-\]
+```
 
-\[
+```math
 u_\theta(r,z,t)
-\]
+```
 
-\[
+```math
 p(r,z,t)
-\]
+```
 
 ### Scalar diagnostics
 
-- maximum \(u_\theta\)
-- maximum downward \(u_z\)
+- maximum $u_\theta$
+- maximum downward $u_z$
 - minimum central pressure
 - water volume
 - volume drift
@@ -1573,11 +1573,11 @@ The first report should contain at least the following.
 
 ## Plot A
 
-\[
+```math
 \boxed{
 d_\infty\ \text{vs.}\ N^2
 }
-\]
+```
 
 Tests the approximate quadratic scaling.
 
@@ -1585,29 +1585,29 @@ Tests the approximate quadratic scaling.
 
 ## Plot B
 
-\[
+```math
 \boxed{
 N_c^2\ \text{vs.}\ H_{\mathrm{eff}}
 }
-\]
+```
 
 where
 
-\[
+```math
 H_{\mathrm{eff}}
 =
 H-z_{\mathrm{bar,top}}.
-\]
+```
 
 ---
 
 ## Plot C
 
-\[
+```math
 \boxed{
 Fr_{\Omega,c}\ \text{vs.}\ H/R_m
 }
-\]
+```
 
 This forms a dimensionless critical-condition diagram.
 
@@ -1615,13 +1615,13 @@ This forms a dimensionless critical-condition diagram.
 
 ## Plot D
 
-\[
+```math
 \boxed{
 r_{\mathrm{air}}(z)
 }
-\]
+```
 
-for several values of RPM above \(N_c\).
+for several values of RPM above $N_c$.
 
 ---
 
@@ -1629,9 +1629,9 @@ for several values of RPM above \(N_c\).
 
 Velocity field:
 
-- \(u_\theta(r,z)\)
-- streamlines in the \(r-z\) plane
-- centerline \(u_z(z)\)
+- $u_\theta(r,z)$
+- streamlines in the $r-z$ plane
+- centerline $u_z(z)$
 
 This is useful for identifying the central downward jet and toroidal recirculation.
 
@@ -1643,22 +1643,22 @@ This is useful for identifying the central downward jet and toroidal recirculati
 
 Fixed:
 
-- \(H\)
+- $H$
 - viscosity
 - stir-bar dimensions
 - vessel dimensions
 
 Vary:
 
-\[
+```math
 N.
-\]
+```
 
 Outputs:
 
-\[
+```math
 d_\infty(N),\qquad N_c.
-\]
+```
 
 ---
 
@@ -1666,16 +1666,16 @@ d_\infty(N),\qquad N_c.
 
 Vary:
 
-\[
+```math
 H=
 20,\ 30,\ 40,\ 50,\ 60\ \mathrm{mm}.
-\]
+```
 
 Output:
 
-\[
+```math
 N_c(H).
-\]
+```
 
 ---
 
@@ -1683,10 +1683,10 @@ N_c(H).
 
 Possible simulation values:
 
-\[
+```math
 \mu=
 1,\ 2,\ 5,\ 10,\ 20\ \mathrm{mPa\,s}.
-\]
+```
 
 When comparing to water–glycerol experiments, also change density and surface tension consistently.
 
@@ -1696,16 +1696,16 @@ When comparing to water–glycerol experiments, also change density and surface 
 
 Current:
 
-\[
+```math
 30\times7\ \mathrm{mm}.
-\]
+```
 
 Possible length study:
 
-\[
+```math
 L_m=
 20,\ 30,\ 40,\ 50\ \mathrm{mm}.
-\]
+```
 
 The MSH-20D catalog states that bars up to 5 cm are usable.
 
@@ -1715,15 +1715,15 @@ The MSH-20D catalog states that bars up to 5 cm are usable.
 
 Current nominal diameter:
 
-\[
+```math
 D_v=90\ \mathrm{mm}.
-\]
+```
 
 If other vessels are available, test confinement through
 
-\[
+```math
 C=\frac{R_m}{R_v}.
-\]
+```
 
 ---
 
@@ -1733,29 +1733,29 @@ Run both:
 
 ### ramp up
 
-\[
+```math
 N_1<N_2<\cdots
-\]
+```
 
 and
 
 ### ramp down
 
-\[
+```math
 N_1>N_2>\cdots.
-\]
+```
 
 Compare
 
-\[
+```math
 N_{\mathrm{form}}
-\]
+```
 
 and
 
-\[
+```math
 N_{\mathrm{collapse}}.
-\]
+```
 
 A difference indicates hysteresis.
 
@@ -2039,19 +2039,19 @@ Before simulating the real vortex, pass simpler tests.
 
 No stirring:
 
-\[
+```math
 \Omega=0.
-\]
+```
 
 Expected:
 
-\[
+```math
 \mathbf u\approx0,
-\]
+```
 
-\[
+```math
 p(z)\approx\rho g(H-z),
-\]
+```
 
 and flat free surface.
 
@@ -2061,19 +2061,19 @@ and flat free surface.
 
 Prescribe approximately
 
-\[
+```math
 u_\theta=\omega r.
-\]
+```
 
 Expected free-surface shape:
 
-\[
+```math
 \eta(r)
 =
 \eta(0)
 +
 \frac{\omega^2r^2}{2g}.
-\]
+```
 
 The solver should reproduce a paraboloid.
 
@@ -2089,29 +2089,29 @@ Use a known curved interface and verify the Laplace-pressure jump.
 
 Track
 
-\[
+```math
 V_w(t).
-\]
+```
 
 Define relative drift:
 
-\[
+```math
 \epsilon_V
 =
 \frac{|V_w(t)-V_w(0)|}{V_w(0)}.
-\]
+```
 
 Target initially:
 
-\[
+```math
 \epsilon_V<1\%.
-\]
+```
 
 Preferably reduce below
 
-\[
+```math
 0.5\%.
-\]
+```
 
 ---
 
@@ -2125,16 +2125,16 @@ Check representative values with multiple grid spacings.
 
 Run the same case with
 
-\[
+```math
 \Delta t,\qquad
 \frac{\Delta t}{2}
-\]
+```
 
 and compare
 
-\[
+```math
 d_\infty
-\]
+```
 
 and interface shape.
 
@@ -2157,41 +2157,41 @@ Choose one condition such as:
 
 Measure:
 
-\[
+```math
 d_{\mathrm{exp}}.
-\]
+```
 
 Fit only the effective coupling parameter
 
-\[
+```math
 \tau_s.
-\]
+```
 
 ---
 
 ### Validation experiments
 
-Without changing \(\tau_s\), compare:
+Without changing $\tau_s$, compare:
 
-\[
+```math
 d(N)
-\]
+```
 
 for other RPM values.
 
 Then compare:
 
-\[
+```math
 N_c(H)
-\]
+```
 
 for multiple water depths.
 
 Finally compare:
 
-\[
+```math
 r_{\mathrm{air}}(z)
-\]
+```
 
 above the critical RPM.
 
@@ -2201,9 +2201,9 @@ above the critical RPM.
 
 The numerical model needs
 
-\[
+```math
 N_{\mathrm{bar}},
-\]
+```
 
 not merely the stirrer display setting.
 
@@ -2216,11 +2216,11 @@ Recommended measurement:
 3. extract angular position frame by frame
 4. calculate
 
-\[
+```math
 N_{\mathrm{bar}}
 =
 \frac{60\,n_{\mathrm{rev}}}{\Delta t}.
-\]
+```
 
 Store both:
 
@@ -2278,12 +2278,12 @@ Those require a two-phase extension.
 
 A common formulation is
 
-\[
+```math
 \rho_i
 =
 \sum_j
 m_j W_{ij}.
-\]
+```
 
 ---
 
@@ -2291,7 +2291,7 @@ m_j W_{ij}.
 
 Weakly compressible SPH may use a Tait-type equation of state:
 
-\[
+```math
 p_i
 =
 \frac{c_0^2\rho_0}{\gamma}
@@ -2301,9 +2301,9 @@ p_i
 \right)^\gamma
 -1
 \right].
-\]
+```
 
-Choose \(c_0\) sufficiently large so that density fluctuations remain small.
+Choose $c_0$ sufficiently large so that density fluctuations remain small.
 
 ---
 
@@ -2311,7 +2311,7 @@ Choose \(c_0\) sufficiently large so that density fluctuations remain small.
 
 Generic SPH form:
 
-\[
+```math
 \frac{d\mathbf u_i}{dt}
 =
 -\sum_j
@@ -2326,7 +2326,7 @@ m_j
 \mathbf a_{\nu,i}
 +
 \mathbf g.
-\]
+```
 
 ---
 
@@ -2336,12 +2336,12 @@ Represent the stir bar as rigid boundary particles.
 
 For each boundary particle,
 
-\[
+```math
 \mathbf u_b
 =
 \boldsymbol\Omega\times
 (\mathbf x_b-\mathbf x_c).
-\]
+```
 
 Use the actual capsule-like geometry:
 
@@ -2356,29 +2356,29 @@ The rod rotates around the vertical vessel axis.
 
 At a particle spacing of about
 
-\[
+```math
 1\ \mathrm{mm},
-\]
+```
 
-a several-hundred-mL water volume already requires on the order of \(10^5\)–\(10^6\) particles depending on the simulated fill.
+a several-hundred-mL water volume already requires on the order of $10^5$ to $10^6$ particles depending on the simulated fill.
 
 At
 
-\[
+```math
 0.5\ \mathrm{mm},
-\]
+```
 
 particle count increases by approximately a factor of 8.
 
 Therefore:
 
-\[
+```math
 \boxed{
 \text{2D parameter sweep first}
 \rightarrow
 \text{3D validation second}
 }
-\]
+```
 
 is far more efficient.
 
@@ -2391,9 +2391,9 @@ Recommended first campaign:
 | Study | Parameter | Values |
 |---|---|---|
 | A | RPM | 300, 500, 700, 900, 1100, 1300, 1500 |
-| B | \(H\) | 20, 30, 40, 50, 60 mm |
-| C | \(\mu\) | 1, 2, 5, 10, 20 mPa·s |
-| D | \(L_m\) | 20, 30, 40, 50 mm |
+| B | $H$ | 20, 30, 40, 50, 60 mm |
+| C | $\mu$ | 1, 2, 5, 10, 20 mPa·s |
+| D | $L_m$ | 20, 30, 40, 50 mm |
 | E | RPM direction | ramp-up / ramp-down |
 
 Do **A + B first**.
@@ -2410,7 +2410,7 @@ Implement Level 0 reduced model.
 
 Deliverables:
 
-- estimated \(N_c\)
+- estimated $N_c$
 - RPM range recommendation
 - dimensionless parameter table
 
@@ -2444,7 +2444,7 @@ Add bottom stirrer forcing.
 
 Deliverables:
 
-- \(u_\theta(r,z)\)
+- $u_\theta(r,z)$
 - central pressure depression
 - vortex formation
 
@@ -2456,8 +2456,8 @@ Add complete Level Set deformation and connectivity analysis.
 
 Deliverables:
 
-- \(d(t)\)
-- \(d_\infty\)
+- $d(t)$
+- $d_\infty$
 - automatic air-core detection
 
 ---
@@ -2468,15 +2468,15 @@ Run RPM sweep.
 
 Deliverables:
 
-\[
+```math
 d_\infty(N)
-\]
+```
 
 and
 
-\[
+```math
 N_c.
-\]
+```
 
 ---
 
@@ -2486,9 +2486,9 @@ Run water-depth sweep.
 
 Deliverable:
 
-\[
+```math
 N_c(H).
-\]
+```
 
 ---
 
@@ -2498,19 +2498,19 @@ Validate experimentally.
 
 Compare:
 
-\[
+```math
 d_{\mathrm{sim}}
 \quad\text{vs.}\quad
 d_{\mathrm{exp}}
-\]
+```
 
 and
 
-\[
+```math
 N_{c,\mathrm{sim}}
 \quad\text{vs.}\quad
 N_{c,\mathrm{exp}}.
-\]
+```
 
 ---
 
@@ -2570,11 +2570,11 @@ The MSH-20D is a hotplate stirrer, but the baseline model is isothermal.
 
 If temperature is intentionally varied, use temperature-dependent
 
-\[
+```math
 \rho(T),\quad
 \mu(T),\quad
 \sigma(T).
-\]
+```
 
 ### Bubble breakup
 
@@ -2595,11 +2595,11 @@ The simulation is considered useful if it can reproduce all of the following qua
 5. a threshold RPM exists for contact with the stir bar
 6. critical RPM increases with water depth
 7. predictions remain consistent after one-point forcing calibration
-8. mesh refinement does not substantially change \(N_c\)
+8. mesh refinement does not substantially change $N_c$
 
 The strongest final IYPT result would be a combined comparison of
 
-\[
+```math
 \boxed{
 \text{theory}
 \leftrightarrow
@@ -2607,19 +2607,19 @@ The strongest final IYPT result would be a combined comparison of
 \leftrightarrow
 \text{experiment}
 }
-\]
+```
 
 for
 
-\[
+```math
 d(N)
-\]
+```
 
 and
 
-\[
+```math
 N_c(H).
-\]
+```
 
 ---
 
@@ -2627,32 +2627,32 @@ N_c(H).
 
 Until the actual standard fill height is selected, use:
 
-\[
+```math
 H=50\ \mathrm{mm}
-\]
+```
 
 with
 
-\[
+```math
 D_v=90\ \mathrm{mm},
 \quad
 L_m=30\ \mathrm{mm},
 \quad
 D_m=7\ \mathrm{mm}.
-\]
+```
 
 Initial RPM cases:
 
-\[
+```math
 N=
 500,\ 700,\ 900,\ 1100,\ 1300,\ 1500\ \mathrm{rpm}.
-\]
+```
 
 Initial grid:
 
-\[
+```math
 \Delta r=\Delta z=0.5\ \mathrm{mm}.
-\]
+```
 
 Initial fluid:
 
@@ -2662,9 +2662,9 @@ Initial fluid:
 
 Initial simulation duration:
 
-\[
+```math
 5\text{–}10\ \mathrm{s}
-\]
+```
 
 or until the vortex-depth signal becomes statistically steady.
 
@@ -2745,19 +2745,19 @@ The first milestone should **not** be an air vortex.
 
 The first milestone should be:
 
-\[
+```math
 \boxed{
 \text{stationary water remains stationary and conserves volume}
 }
-\]
+```
 
 The second milestone should be:
 
-\[
+```math
 \boxed{
 \text{imposed solid-body rotation reproduces the analytical parabolic surface}
 }
-\]
+```
 
 Only after these validation tests pass should the magnetic-stirrer forcing be trusted.
 

@@ -62,7 +62,7 @@ def main() -> None:
     parser.add_argument("--pressure-method", choices=["direct", "cg"], default="direct")
     args = parser.parse_args()
     if args.swirl_mode == "prescribed" and args.kind == "production":
-        parser.error("--swirl-mode prescribed is validation-only (README_rewritten 21.3); "
+        parser.error("--swirl-mode prescribed is validation-only (README 21.3); "
                      "use --kind solid_body_rotation for that legacy diagnostic.")
 
     cfg = load_config(args.config)

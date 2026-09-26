@@ -1,4 +1,4 @@
-"""Architecture switch (README_rewritten 19.2): model selection, guards,
+"""Architecture switch (README 19.2): model selection, guards,
 and separation of the two runtime paths."""
 import copy
 import warnings

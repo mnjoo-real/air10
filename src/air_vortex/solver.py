@@ -5,7 +5,7 @@ solver (``physics.free_surface_model: two_phase_diffuse_ls``). It is kept
 runnable and bit-for-bit unchanged for historical diagnostics and the
 regression golden fixture. The Level-1A single-phase production path lives
 in :mod:`air_vortex.single_phase_solver`; :func:`build_solver` is the one
-place where the two are selected (README_rewritten section 19.2).
+place where the two are selected (README section 19.2).
 """
 from __future__ import annotations
 
@@ -238,7 +238,7 @@ def water_volume(grid: Grid, phi: np.ndarray) -> float:
 
 def build_solver(cfg: Config, swirl_mode: SwirlMode = "forced",
                   pressure_method: Literal["direct", "cg"] = "direct"):
-    """Architecture switch (README_rewritten section 19.2): returns the
+    """Architecture switch (README section 19.2): returns the
     legacy two-phase :class:`Solver` for ``two_phase_diffuse_ls`` (the
     transition default) or a
     :class:`~air_vortex.single_phase_solver.SinglePhaseSolver` for
@@ -247,7 +247,7 @@ def build_solver(cfg: Config, swirl_mode: SwirlMode = "forced",
     if model == "single_phase_ls":
         if swirl_mode != "forced":
             raise ValueError(
-                "single_phase_ls has no domain-wide prescribed swirl (README_rewritten 8.2); "
+                "single_phase_ls has no domain-wide prescribed swirl (README 8.2); "
                 "swirl_mode='prescribed' is a legacy validation-only construction.")
         if pressure_method != "direct":
             raise ValueError("single_phase_ls currently supports pressure_method='direct' only.")
@@ -264,7 +264,7 @@ def build_solver(cfg: Config, swirl_mode: SwirlMode = "forced",
         import warnings
         warnings.warn(
             "swirl_mode='prescribed' is VALIDATION-ONLY (domain-wide Omega*r, not an equilibrium "
-            "construction; README_rewritten 21.3). Production uses swirl_mode='forced'.",
+            "construction; README 21.3). Production uses swirl_mode='forced'.",
             ValidationOnlyWarning, stacklevel=2)
     grid = build_grid(cfg)
     fields = initialize_still_water(grid, cfg.geometry.water_height_m)

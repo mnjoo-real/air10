@@ -1,5 +1,5 @@
 """Level-1A time integrator: axisymmetric single-phase water with a moving
-free surface (README_rewritten sections 5, 6, 19.4).
+free surface (README sections 5, 6, 19.4).
 
 Per step:
 
@@ -15,7 +15,7 @@ Per step:
       -> optional reinitialization (displacement recorded)
       -> optional global volume correction (OFF by default)
 
-What this path does NOT use (README_rewritten section 6.2 / task item 4):
+What this path does NOT use (README section 6.2 / task item 4):
 rho(phi), mu(phi), an air momentum equation, a variable-density Poisson
 equation, CSF surface tension, or domain-wide prescribed swirl. None of
 properties.py, surface_tension.py or pressure.py is imported here.
@@ -24,7 +24,7 @@ Surface tension (Gate V4) enters ONLY as the sharp interface pressure
 p_Gamma = p_atm + S_KAPPA sigma kappa at each sub-cell crossing, with kappa
 from curvature_single_phase.py evaluated on phi^n.
 
-Stirrer forcing is intentionally NOT connected yet (README_rewritten
+Stirrer forcing is intentionally NOT connected yet (README
 Milestone E: only after the numerical gates pass). A config with a nonzero
 stirrer RPM is refused rather than silently run without forcing.
 
@@ -32,7 +32,7 @@ Wall boundary conditions
 ------------------------
 Production (default) is :meth:`WallBC.no_slip`: u_r = u_z = u_theta = 0 on
 the side wall and bottom. :meth:`WallBC.rotating` exists ONLY for the
-manufactured rigid-body verification (README_rewritten Gate V3): exact
+manufactured rigid-body verification (README Gate V3): exact
 solid-body rotation u_theta = Omega r is not an equilibrium against a
 stationary no-slip wall, so that test uses a container rotating with the
 liquid (u_theta = Omega r on wall and bottom; u_r = u_z = 0 unchanged).
@@ -95,6 +95,26 @@ class WallBC:
 
     def bottom_u_theta(self, grid: Grid) -> np.ndarray:
         return self.omega * grid.r_c
+
+
+def _direct_wall_curvature(grid, geom, phi, wall_cfg, kr, kz):
+    """DIAGNOSTIC hybrid (V4b-P): on the crossings of the wall-adjacent
+    column (vertical crossings in column N-1 and radial crossings on the
+    face between N-2 and N-1), replace the level-set curvature by the
+    constrained reconstruction's kappa_m + kappa_theta at that r."""
+    from .contact_angle import reconstruct_pinned
+    from .curvature_single_phase import crossing_positions
+    rec = reconstruct_pinned(grid, phi, wall_cfg.pinned_contact_height_m,
+                             wall_cfg.pinned_fit, wall_cfg.pinned_fit_columns)
+    rr, _, rz, _ = crossing_positions(grid, geom)
+    kr, kz = kr.copy(), kz.copy()
+    m = np.isfinite(kz[-1, :])
+    km, kt = rec.kappa_parts(rz[-1, m])
+    kz[-1, m] = km + kt
+    m = np.isfinite(kr[-2, :])
+    km, kt = rec.kappa_parts(rr[-2, m])
+    kr[-2, m] = km + kt
+    return kr, kz
 
 
 def laplacian_utheta_dirichlet(grid: Grid, u_theta: np.ndarray, u_wall: np.ndarray,
@@ -173,15 +193,17 @@ class SinglePhaseSolver:
         if cfg.stirrer.rpm_used != 0.0:
             raise NotImplementedError(
                 "single_phase_ls: the local stirrer forcing is not connected until the "
-                "Milestone-1 numerical gates pass (README_rewritten Milestone E). "
+                "Milestone-1 numerical gates pass (README Milestone E). "
                 "Use stirrer.rpm: 0 (validation) or the legacy two_phase_diffuse_ls model.")
         self._check_extension_width()
         if cfg.wall.contact_model == "pinned" and cfg.wall.pinned_contact_height_m is None:
-            from .contact_angle import wall_contact_points
+            from .contact_angle import initial_pin_height, wall_contact_points
             zc = wall_contact_points(self.grid, self.fields.phi)
             if zc.size != 1:
                 raise ValueError(f"pinned contact model: expected one wall contact point, found {zc.size}")
-            cfg.wall.pinned_contact_height_m = float(zc[0])
+            cfg.wall.pinned_contact_height_m = (
+                float(zc[0]) if cfg.wall.pinned_method == "legacy"
+                else initial_pin_height(self.grid, self.fields.phi, cfg.wall.pinned_fit_columns))
         f = self.fields
         f.rho = np.full(self.grid.shape_center, cfg.fluid.water_density)
         f.mu = np.full(self.grid.shape_center, cfg.fluid.water_viscosity)
@@ -229,6 +251,12 @@ class SinglePhaseSolver:
             kr, kz = self.curvature_fn(self.grid, geom, phi)
         else:
             kr, kz = interface_curvature(self.grid, geom, phi, self.cfg.wall)
+            w = self.cfg.wall
+            if w.contact_model == "pinned" and w.pinned_method == "reconstruct_direct":
+                kr, kz = _direct_wall_curvature(self.grid, geom, phi, w, kr, kz)
+            if w.wall_curvature == "graph":
+                from .wall_curvature import graph_band_curvature
+                kr, kz = graph_band_curvature(self.grid, geom, phi, w, kr, kz)
         pr, pz = interface_pressure(geom, sigma=sigma, kappa_r=kr, kappa_z=kz)
         return pr, pz, kr, kz
 

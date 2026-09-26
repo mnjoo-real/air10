@@ -1,4 +1,4 @@
-"""Zero-contour preservation metrics for reinitialization (README_rewritten
+"""Zero-contour preservation metrics for reinitialization (README
 9.4) and the reinitialization dispatcher used by the single-phase path.
 
 Primary metric: displacement of the phi = 0 contour, measured with the

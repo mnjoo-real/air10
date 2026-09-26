@@ -39,7 +39,7 @@ time:
 
 levelset:
   interface_width_cells: 1.5   # unused by single_phase_ls (no diffuse band)
-  reinitialize_every: 0        # 0 = off (README_rewritten 9.4)
+  reinitialize_every: 0        # 0 = off (README 9.4)
   reinitialize_iterations: 2
   advection_scheme: muscl2
   time_integrator: ssprk2

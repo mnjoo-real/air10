@@ -1,5 +1,5 @@
 """Free-surface dynamic boundary condition for the single-phase Level-1A
-path (README_rewritten sections 5.5, 6.1, 10).
+path (README sections 5.5, 6.1, 10).
 
 Level 1A neglects gas inertia and gas viscous stress, so the liquid sees
 the atmosphere only through the normal-stress balance at phi=0:

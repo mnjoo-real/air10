@@ -1,5 +1,5 @@
 """Axisymmetric interface curvature for the single-phase sharp capillary
-pressure jump (README_rewritten 5.5, 10; Gate V4).
+pressure jump (README 5.5, 10; Gate V4).
 
 Convention (verified by tests/test_curvature_single_phase.py):
 

@@ -1,4 +1,4 @@
-"""Level-1A Milestone-1 verification report (README_rewritten Gates V1-V3,
+"""Level-1A Milestone-1 verification report (README Gates V1-V3,
 sigma = 0, no stirring). Writes
 
     results/validation_single_phase_m1/metadata.json   (kind="single_phase_milestone1")

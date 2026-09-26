@@ -1,4 +1,4 @@
-"""Manufactured static reinitialization benchmarks R1-R4 (README_rewritten
+"""Manufactured static reinitialization benchmarks R1-R4 (README
 9.4 / Gate V5b). Each case supplies a deliberately non-signed-distance
 phi0 whose zero set is known exactly, plus an exact-geometry error
 function, so two different questions can be answered separately:

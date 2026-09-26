@@ -1,5 +1,5 @@
 """Narrow-band extension of the LIQUID velocity into the void side, for
-Level Set transport only (README_rewritten sections 5.4, 9.3).
+Level Set transport only (README sections 5.4, 9.3).
 
 The extended values are NOT air velocity. Level 1A solves no gas
 dynamics; the extension exists only so that the kinematic condition

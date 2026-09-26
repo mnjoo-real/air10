@@ -50,11 +50,13 @@ phi^n -> liquid / void / interface geometry (sub-cell theta)
 | V3 | rigid-body rotating liquid, co-rotating (matched) wall, $\sigma = 0$ | **PASS** with reinit OFF (NRMSE $\le 6\times10^{-4}$) |
 | V4 | isolated capillary interface (static drop) | **PASS** for $R/\Delta x \ge 8$; WARN at 6; FAIL at 4. Open: slow rigid drift of a free drop (net spurious axial force) |
 | V4b-S | wall contact geometry (angle convention, wall curvature, Young–Laplace meniscus) | geometry **PASS**; long-time wall equilibrium **FAIL** |
-| V4b-P | pinned contact line invariant to where the pin sits inside a cell | **IN PROGRESS**: new reconstruction cuts median spurious flow 7x, one phase still unstable |
+| V4b-P | pinned contact line invariant to where the pin sits inside a cell | **FAIL**: a phase-dependent linear instability in the wall-near curvature–shape feedback (the static-angle wall shows it too). An opt-in wall-near graph curvature (`wall.wall_curvature: graph`) cures the two historical failures, but other phases of a steep ($50^\circ$) meniscus still burst or grow (docs/level1a_single_phase.md §9.10) |
+| V4b-H | pinned wall with the opt-in **height-function** free surface (`single_phase_height`) | **PASS**: 0/50 unstable over $\theta = 50$–$90^\circ$ × 10 phases, no growing Jacobian mode, volume conserved to round-off. At $\theta = 60^\circ$ the worst $U(3\,\mathrm{s})$ is $9.0\times10^{-5}$ / $1.9\times10^{-5}$ / $3.5\times10^{-6}$ m/s and the worst RMSE $0.0013$ / $0.0005$ / $0.0003\,\Delta x$ at $\Delta x = 0.5$ / $0.25$ / $0.125$ mm (docs §10) |
+| Integrated | gravity + capillarity + rotation equilibrium, pinned wall (height branch) | **PASS**: $\Omega = 25$ rad/s, 3 grids, flow decays and converges with refinement ($7\times10^{-6} \to 1\times10^{-6} \to 4\times10^{-7}$ m/s), RMSE $\approx 5\times10^{-5}\,\Delta x$ |
 | V5a | Level Set transport, zero-flow invariance | **PASS** |
 | V5b | reinitialization keeps $\phi = 0$ fixed (RS2 subcell fix) | **PASS** for planes and the rigid-body paraboloid; drifts on radii $\lesssim 8$ cells |
 | V5c | rigid body with operational reinit | **PARTIAL** (shape PASS, small velocity floor) |
-| V6–V7 | time-step / grid convergence of the production path | pending |
+| V6–V7 | time-step / grid convergence of the production path (height branch, stirrer forcing, $	au_s$ = 5 ms fixed, uncalibrated) | **V6 timestep PASS; V7a forcing PASS; V7b swirl transport PASS** (new height default: conservative MUSCL2 swirl + angular-momentum viscous form, 2nd order, budget to 1e-5). **V7 spatial convergence NOT passed (Outcome D)**: at 1 / 0.5 / 0.25 mm the wall/bottom viscous layers (measured δ95 ≈ 0.55–0.8 mm, 2–3 cells at 0.25 mm) and the forcing–wall contact layer under the bar (≈0.07 mm, torque ∝ 1/dx) do not converge; arrival times and torques are non-asymptotic. Next: stirrer-bottom model decision, then stretched grid (docs §10.y, docs/nonuniform_grid_plan.md) V7-S: wall-touching stirrer forcing (M0) causes a 1/dx bottom torque; the opt-in tapered-volume model M1 (ℓ_z = D_m/4) removes it. With M1, L_z and near-axis arrival converge at 1/0.5/0.25 mm, and at 150 rpm the 0.5 and 0.25 mm depths agree within the surface oscillation, but meridional flow (U_mer, 12–16 %) and late torques do not. Decision B: stretched grid required (docs §10.z) |
 | V8–V10 | stirrer forcing, calibration, experiment | pending (blocked on V4b) |
 
 ## C. Equations used, in one place
@@ -156,7 +158,7 @@ d(t)=H-z_{\rm tip}(t),
 
 ## E. Next steps
 
-1. Finish V4b-P: make the pinned contact line independent of the pin's sub-cell position, checked by median **and** worst phase on three grids.
+1. Wall/free surface: the Level-Set wall (V4b-P) stays FAIL. The opt-in height-function branch removes both Level-Set freedoms and passes the static pinned-meniscus gates (docs §10). It is valid only while the free surface is a single-valued graph $z=\eta(r)$ (up to first air-core contact); `graph_validity` reports when that breaks.
 2. Integrated gravity + capillarity + rotation equilibrium.
 3. V6–V7 convergence of the production path. Then connect the stirrer forcing, measure the contact-line behaviour and the actual RPM, and calibrate $\tau_s$ on one depth.
 

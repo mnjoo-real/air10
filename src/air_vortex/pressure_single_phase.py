@@ -1,5 +1,5 @@
 """Liquid-only constant-density pressure Poisson solve and projection for
-the single-phase Level-1A path (README_rewritten section 6).
+the single-phase Level-1A path (README section 6).
 
     lap(p) = (rho_w / dt) div(u*)        in liquid cells (phi < 0)
     p      = p_Gamma                     at the sub-cell phi=0 crossing
@@ -60,7 +60,7 @@ TopBC = Literal["error", "neumann"]
 
 class LiquidReachedTopError(RuntimeError):
     """The liquid occupies the top row of the domain. Level 1A has no
-    rectangular-domain atmospheric boundary (README_rewritten section 7):
+    rectangular-domain atmospheric boundary (README section 7):
     production runs need enough void headspace that this cannot happen."""
 
 
@@ -77,7 +77,7 @@ def _check_solvable(geom: LiquidGeometry, top_bc: TopBC) -> None:
     if top_bc == "error" and np.any(liquid[:, -1]):
         raise LiquidReachedTopError(
             "single_phase_ls: liquid reached the top row of the computational domain; "
-            "increase geometry.air_height_m (README_rewritten section 7, 'Free surface').")
+            "increase geometry.air_height_m (README section 7, 'Free surface').")
     labels, n = ndimage.label(liquid)
     if n == 0:
         raise RuntimeError("single_phase_ls: no liquid cells (phi < 0 nowhere).")
@@ -182,7 +182,7 @@ def solve_liquid_pressure(grid: Grid, geom: LiquidGeometry, u_star_r: np.ndarray
                            u_star_z: np.ndarray, rho: float, dt: float,
                            p_gamma_r: np.ndarray, p_gamma_z: np.ndarray,
                            top_bc: TopBC = "error") -> np.ndarray:
-    """lap(p) = (rho/dt) div(u*) on liquid cells (README_rewritten 6)."""
+    """lap(p) = (rho/dt) div(u*) on liquid cells (README 6)."""
     source = (rho / dt) * divergence(grid, u_star_r, u_star_z)
     return solve_liquid_pressure_from_source(grid, geom, source, p_gamma_r, p_gamma_z, top_bc)
 

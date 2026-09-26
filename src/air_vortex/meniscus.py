@@ -95,6 +95,39 @@ def solve_meniscus(theta_deg: float, R: float, H: float, rho=RHO, sigma=SIGMA, g
                              float(np.max(np.abs(sol.rms_residuals))))
 
 
+def solve_meniscus_pinned(z_pin: float, R: float, H: float, rho=RHO, sigma=SIGMA, g=G,
+                          tol=1e-10) -> MeniscusReference:
+    """PINNED-contact-line reference: the same Young-Laplace ODEs, but the
+    wall condition is the POSITION z(S) = z_pin (eta(R) = z_pin); the wall
+    angle psi(S) is free and is an output. ``theta_deg`` of the result is
+    the equilibrium (apparent) contact angle pi/2 - psi(S) through the
+    liquid. Unknowns: arc length S and P0 (the centre height is z(0))."""
+    V = np.pi * R**2 * H
+
+    def f(tau, y, p):
+        S, P0 = p
+        r, z, psi, _ = y
+        a = (rho * g * z - P0) / sigma
+        small = r < 1e-9 * R
+        hoop = np.where(small, 0.0, np.sin(psi) / np.where(small, 1.0, r))
+        dpsi = np.where(small, 0.5 * a, a - hoop)
+        return np.vstack([S * np.cos(psi), S * np.sin(psi), S * dpsi,
+                          S * 2 * np.pi * r * z * np.cos(psi)])
+
+    def bc(ya, yb, p):
+        return np.array([ya[0], ya[2], ya[3], yb[0] - R, yb[1] - z_pin, yb[3] - V])
+
+    tau = np.linspace(0, 1, 400)
+    y0 = np.vstack([tau * R, H + (z_pin - H) * tau**2, 2 * (z_pin - H) / R * tau, tau**2 * V])
+    sol = solve_bvp(f, bc, tau, y0, p=np.array([R, rho * g * H]), tol=tol, max_nodes=200000)
+    if not sol.success:
+        raise RuntimeError(f"pinned meniscus BVP failed: {sol.message}")
+    y = sol.sol(np.linspace(0, 1, 4001))
+    theta_eq = float(np.rad2deg(np.pi / 2 - y[2][-1]))
+    return MeniscusReference(theta_eq, R, V, float(sol.p[1]), y[0], y[1], y[2],
+                             float(np.max(np.abs(sol.rms_residuals))))
+
+
 def small_slope_meniscus(theta_deg: float, R: float, H: float, rho=RHO, sigma=SIGMA, g=G):
     """Linearized reference: eta = P0/(rho g) + A I0(r/lc), eta'(R) = cot theta,
     volume pi R^2 H. Returns (eta_fn, P0)."""

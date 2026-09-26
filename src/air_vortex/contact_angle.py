@@ -109,7 +109,14 @@ def wall_ghost_column(grid: Grid, phi: np.ndarray, wall_cfg=None) -> np.ndarray:
     if wall_cfg is None or wall_cfg.contact_model == "extrapolate":
         return ghost0
     if wall_cfg.contact_model == "pinned":
-        return _pinned_ghost(grid, phi, wall_cfg.pinned_contact_height_m)
+        if wall_cfg.pinned_method == "legacy":
+            return _pinned_ghost(grid, phi, wall_cfg.pinned_contact_height_m)
+        rec = reconstruct_pinned(grid, phi, wall_cfg.pinned_contact_height_m,
+                                 wall_cfg.pinned_fit, wall_cfg.pinned_fit_columns,
+                                 wall_cfg.pinned_skip_wall_column)
+        if wall_cfg.pinned_method == "reconstruct_ghost_distance":
+            return rec.ghost_distance(grid, phi)
+        return rec.ghost_wall_value(grid, phi)
     if wall_cfg.contact_model != "static_angle":
         raise ValueError(wall_cfg.contact_model)
     zc = wall_contact_points(grid, phi)
@@ -131,7 +138,8 @@ def wall_ghost_column(grid: Grid, phi: np.ndarray, wall_cfg=None) -> np.ndarray:
 
 
 def _pinned_ghost(grid: Grid, phi: np.ndarray, z_pin: float | None) -> np.ndarray:
-    """CL-P ghost: the wall trace pw(z) of the cubic is shifted by the
+    """LEGACY (V4b) CL-P ghost, kept only for the V4b-P phase-sweep
+    comparison; it is grid-phase dependent (docs sec. 10). the wall trace pw(z) of the cubic is shifted by the
     constant pw(z_pin) (local 4-point cubic in z), so the zero level meets
     the wall exactly at z_pin; the angle is whatever the interior implies.
     Ghost = quadratic through phi_2 (x=-3/2), phi_1 (x=-1/2) and the pinned
@@ -160,3 +168,114 @@ def contact_point(grid: Grid, phi: np.ndarray, n_fit: int = 3) -> tuple[float, f
     c = np.polyfit(r - grid.r_v, e, 2)
     slope = c[1]
     return float(c[2]), float(np.rad2deg(np.arctan2(1.0, slope)))
+
+
+# ---------------------------------------------------------------------------
+# V4b-P: sub-cell-invariant pinned contact line (constrained reconstruction)
+# ---------------------------------------------------------------------------
+#
+# Nothing below selects a node, window or cell from z_pin. The samples
+# are the sub-cell phi = 0 crossings of a FIXED set of wall-adjacent
+# columns (the same linear crossing as diagnostics.free_surface_height),
+# and z_pin only enters as the exact constraint f(R) = z_pin of a
+# least-squares graph fit. Every quantity is therefore a continuous function
+# of z_pin and of the phi values, with no discrete switch as z_pin moves
+# through a cell.
+
+
+def _column_crossing(phi_col, z_c):
+    """First air-to-liquid crossing scanning down (free_surface_height rule)."""
+    from .diagnostics import _interpolate_zero_crossing
+    for j in range(len(z_c) - 1, 0, -1):
+        if phi_col[j] >= 0.0 and phi_col[j - 1] < 0.0:
+            return _interpolate_zero_crossing(z_c[j - 1], phi_col[j - 1], z_c[j], phi_col[j])
+    return float("nan")
+
+
+class PinnedReconstruction:
+    """z = f(r) = z_pin + a1 x + a2 x^2 (+ a3 x^3), x = (r - R)/dx, fitted to
+    the wall-column crossings by (optionally weighted) least squares with
+    f(R) = z_pin imposed exactly. The contact ANGLE is not imposed: f'(R) is
+    whatever the interface implies."""
+
+    def __init__(self, R, dx, z_pin, coeffs, r_s, z_s):
+        self.R, self.dx, self.z_pin, self.a = R, dx, z_pin, coeffs
+        self.r_samples, self.z_samples = r_s, z_s
+
+    def f(self, r):
+        x = (np.asarray(r) - self.R) / self.dx
+        return self.z_pin + sum(c * x ** (k + 1) for k, c in enumerate(self.a))
+
+    def fp(self, r):
+        x = (np.asarray(r) - self.R) / self.dx
+        return sum((k + 1) * c * x**k for k, c in enumerate(self.a)) / self.dx
+
+    def fpp(self, r):
+        x = (np.asarray(r) - self.R) / self.dx
+        return sum((k + 1) * k * c * x ** (k - 1) for k, c in enumerate(self.a) if k >= 1) / self.dx**2
+
+    def kappa_parts(self, r):
+        """(kappa_meridional, kappa_azimuthal) of the graph, liquid below,
+        kappa = div(n) as in curvature_single_phase:
+        kappa_m = -f''/(1+f'^2)^(3/2), kappa_theta = -f'/(r sqrt(1+f'^2))."""
+        fp, fpp = self.fp(r), self.fpp(r)
+        q = np.sqrt(1 + fp**2)
+        return -fpp / q**3, -fp / (np.asarray(r) * q)
+
+    @property
+    def wall_slope(self):
+        return float(self.fp(self.R))
+
+    def _grad_mag_wall_column(self, grid, phi):
+        pz = np.gradient(phi[-1, :], grid.dz)
+        pr = (phi[-1, :] - phi[-2, :]) / grid.dr
+        return np.hypot(pr, pz)
+
+    def ghost_wall_value(self, grid, phi):
+        """Wall value phi_w(z) = |grad phi| (z - z_pin) / sqrt(1 + f'(R)^2),
+        zero EXACTLY at (R, z_pin); ghost = quadratic through phi_2, phi_1,
+        phi_w evaluated at r = R + dr/2: phi_2/3 - 2 phi_1 + 8/3 phi_w."""
+        G = self._grad_mag_wall_column(grid, phi)
+        phi_w = G * (grid.z_c - self.z_pin) / np.sqrt(1 + self.wall_slope**2)
+        return phi[-2, :] / 3.0 - 2.0 * phi[-1, :] + 8.0 / 3.0 * phi_w
+
+    def ghost_distance(self, grid, phi):
+        """ghost = phi_1 + |grad phi| (d_g - d_1), d = (z - f(r))/sqrt(1+f'(r)^2),
+        the reconstructed signed distance at r_g = R + dr/2 and r_1 = R - dr/2."""
+        G = self._grad_mag_wall_column(grid, phi)
+        r1, rg = grid.r_c[-1], grid.r_v + 0.5 * grid.dr
+
+        def d(r):
+            return (grid.z_c - self.f(r)) / np.sqrt(1 + self.fp(r) ** 2)
+        return phi[-1, :] + G * (d(rg) - d(r1))
+
+
+def reconstruct_pinned(grid, phi, z_pin, fit="quadratic", n_cols=4, skip_wall_column=False):
+    """skip_wall_column: sample columns N-2 .. N-1-n_cols instead of
+    N-1 .. N-n_cols, so the fit does not read the column whose phi is
+    driven directly by the ghost it produces (breaks a ghost -> column N-1 ->
+    fit -> ghost feedback loop)."""
+    if z_pin is None:
+        raise ValueError("pinned contact model needs wall.pinned_contact_height_m")
+    off = 1 if skip_wall_column else 0
+    idx = range(grid.Nr - n_cols - off, grid.Nr - off)
+    r_s = grid.r_c[list(idx)]
+    z_s = np.array([_column_crossing(phi[i, :], grid.z_c) for i in idx])
+    ok = np.isfinite(z_s)
+    x = (r_s[ok] - grid.r_v) / grid.dr
+    y = z_s[ok] - z_pin
+    deg = 3 if fit == "cubic" else 2
+    A = np.vstack([x ** (k + 1) for k in range(deg)]).T
+    w = 1.0 / np.abs(x) if fit == "quadratic_weighted" else np.ones_like(x)
+    coeffs, *_ = np.linalg.lstsq(A * w[:, None], y * w, rcond=None)
+    return PinnedReconstruction(grid.r_v, grid.dr, z_pin, coeffs, r_s, z_s)
+
+
+def initial_pin_height(grid, phi, n_cols=4):
+    """z_pin from the initial interface: UNconstrained quadratic fit of the
+    same wall-column crossings, evaluated at r = R (continuous in the data;
+    no node or window selection)."""
+    r_s = grid.r_c[-n_cols:]
+    z_s = np.array([_column_crossing(phi[i, :], grid.z_c) for i in range(grid.Nr - n_cols, grid.Nr)])
+    c = np.polyfit((r_s - grid.r_v) / grid.dr, z_s, 2)
+    return float(c[-1])

@@ -60,6 +60,9 @@ class FluidConfig:
     gravity: float = 9.81
 
 
+STIRRER_MODELS = ("wall_touching_volume", "tapered_volume", "moving_footprint")
+
+
 @dataclass
 class StirrerConfig:
     rpm: float
@@ -72,6 +75,15 @@ class StirrerConfig:
     make these differ at high load. When present, this is what the
     simulation physics actually uses (see ``rpm_used``); ``rpm`` alone
     stays available as the setpoint for reference/labeling."""
+    model: str = "wall_touching_volume"
+    """Effective stirrer representation (V7-S, docs sec. 10.z). "wall_touching_volume" (default,
+    legacy: chi(r, z) of forcing.forcing_mask reaches the no-slip bottom); "tapered_volume" (M1,
+    chi_z additionally multiplied by a C2 smoothstep S(z / bottom_taper_m), zero at the bottom);
+    "moving_footprint" (M2, single_phase_height only: NO volume forcing; the bottom tangential
+    velocity under the bar is Omega(t) r w(r), w = (1 - tanh((r - R_m)/forcing_smoothing_m))/2).
+    Numerical model candidates, not calibrated physics."""
+    bottom_taper_m: float = 0.0
+    """tapered_volume only: physical taper length ell_z (> 0; never a number of cells)."""
     calibrated: bool = False
     """Whether ``forcing_tau_s`` came from an actual calibration run
     (scripts/calibrate_forcing.py) against a measured vortex depth, rather
@@ -99,6 +111,12 @@ class StirrerConfig:
         if self.ramp_time_s <= 0:
             return self.omega_target
         return self.omega_target * (1.0 - math.exp(-t / self.ramp_time_s))
+
+    def __post_init__(self) -> None:
+        if self.model not in STIRRER_MODELS:
+            raise ValueError(f"stirrer.model must be one of {STIRRER_MODELS}, got {self.model!r}")
+        if self.model == "tapered_volume" and not self.bottom_taper_m > 0:
+            raise ValueError("stirrer.bottom_taper_m must be > 0 (a physical length) for tapered_volume")
 
 
 @dataclass
@@ -199,21 +217,59 @@ class WallConfig:
     contact_model: str = "extrapolate"
     contact_angle_deg: float | None = None
     pinned_contact_height_m: float | None = None
+    pinned_method: str = "reconstruct_ghost"
+    """pinned only. "reconstruct_ghost": constrained interface reconstruction
+    -> ghost phi (V4b-P). "reconstruct_direct": same ghost plus direct
+    reconstruction curvature at the wall-column crossings (diagnostic
+    hybrid). "legacy": the V4b cubic-window ghost (diagnostic comparison
+    only; grid-phase dependent)."""
+    pinned_fit: str = "quadratic"
+    """"quadratic" | "quadratic_weighted" | "cubic" (constrained LSQ, f(R) = z_pin)."""
+    pinned_fit_columns: int = 4
+    pinned_skip_wall_column: bool = False
+    wall_curvature: str = "level_set"
+    """Capillary curvature at the crossings of the last ``wall_curvature_band``
+    columns. "level_set" (default): the bulk div(n) path everywhere (bitwise
+    the pre-existing behaviour). "graph": wall_curvature.graph_band_curvature,
+    a constrained fit of the column interface heights evaluated at each
+    crossing (V4b-P redesign)."""
+    wall_curvature_band: int = 6
+    wall_curvature_order: int = 2
+    wall_curvature_fit: str = "local"
+    """"local": a moving fit of the ``wall_curvature_window`` columns nearest
+    each crossing; "global": one fit over the whole band."""
+    wall_curvature_window: int = 3
+    """Points per local fit. order + 1 = interpolating height-function stencil
+    (required for stability); larger = least-squares smoothing, which is
+    anti-restoring at the grid scale (diagnostic negative option only)."""
+    wall_curvature_blend: int = 0
+    """0: hard switch at the band edge; n > 0: linear blend over n columns."""
 
     def __post_init__(self) -> None:
         if self.contact_model not in CONTACT_MODELS:
             raise ValueError(f"wall.contact_model must be one of {CONTACT_MODELS}")
+        if self.pinned_method not in ("reconstruct_ghost", "reconstruct_ghost_distance",
+                                      "reconstruct_direct", "legacy"):
+            raise ValueError(f"unknown wall.pinned_method {self.pinned_method!r}")
+        if self.pinned_fit not in ("quadratic", "quadratic_weighted", "cubic"):
+            raise ValueError(f"unknown wall.pinned_fit {self.pinned_fit!r}")
         if self.contact_model == "static_angle":
             if self.contact_angle_deg is None or not (0.0 < self.contact_angle_deg < 180.0):
                 raise ValueError("wall.contact_model='static_angle' needs 0 < contact_angle_deg < 180")
+        if self.wall_curvature not in ("level_set", "graph"):
+            raise ValueError(f"unknown wall.wall_curvature {self.wall_curvature!r}")
+        if self.wall_curvature_fit not in ("local", "global"):
+            raise ValueError(f"unknown wall.wall_curvature_fit {self.wall_curvature_fit!r}")
+        if self.wall_curvature_order not in (2, 3, 4) or self.wall_curvature_band < 1                 or self.wall_curvature_blend < 0 or self.wall_curvature_window < self.wall_curvature_order + 1:
+            raise ValueError("invalid wall.wall_curvature_{order,band,blend,window}")
 
 
-FREE_SURFACE_MODELS = ("two_phase_diffuse_ls", "single_phase_ls")
+FREE_SURFACE_MODELS = ("two_phase_diffuse_ls", "single_phase_ls", "single_phase_height")
 
 
 @dataclass
 class PhysicsConfig:
-    """Architecture selector (README_rewritten section 19.2).
+    """Architecture selector (README section 19.2).
 
     ``free_surface_model``:
 
@@ -226,6 +282,10 @@ class PhysicsConfig:
       with constant rho_w, mu_w; the Level Set is geometry only; the
       atmosphere enters as a sharp Dirichlet pressure at the sub-cell phi=0
       crossing (:class:`air_vortex.single_phase_solver.SinglePhaseSolver`).
+    - ``"single_phase_height"`` -- opt-in RESEARCH branch: same water-only
+      solve, but the free surface is a height function z = eta(r) moved by an
+      exactly conservative column flux (:class:`air_vortex.height_solver.
+      SinglePhaseHeightSolver`). Single-valued interfaces only.
 
     A config file without a ``physics`` section gets the legacy default."""
     free_surface_model: str = "two_phase_diffuse_ls"
@@ -250,8 +310,34 @@ class PhysicsConfig:
     """single_phase_ls only: dt <= factor * sqrt(rho_w dx^3 / (4 pi sigma))
     (Brackbill-Kothe-Zemach 1992 capillary-wave limit with the gas density
     set to zero). Used only when sigma > 0."""
+    height_swirl_advection: str = "conservative_muscl2"
+    """single_phase_height only: swirl transport (swirl_transport.SWIRL_ADVECTION_MODES).
+    Default (V7-T): second-order limited flux form, validated (manufactured order 2.0, L_z to
+    round-off, height gates H3/H4/V4b-H/integrated unchanged). "conservative_upwind1" is the
+    first-order flux form (the V6/V7 "conservative" diagnostic).
+    "advective" is the LEGACY non-conservative form (angular-momentum budget errors of 10-80 %
+    in the V6/V7 rigid-lid runs, docs sec. 10); selecting it warns unless
+    height_legacy_swirl_for_validation is set. Ignored by the other models."""
+    height_meridional_advection: str = "advective"
+    """single_phase_height only: meridional momentum advection, "advective" (first-order upwind
+    u.grad u shared with the other solvers) or the opt-in flux forms "conservative_upwind1" /
+    "conservative_muscl2" (meridional_transport.py, V7-T)."""
+    height_swirl_limiter: str = "vanleer"
+    """single_phase_height, conservative_muscl2 only: slope limiter (swirl_transport.LIMITERS)."""
+    height_swirl_viscous: str = "angular_momentum"
+    """single_phase_height only: "angular_momentum" (default, V7-T: flux form of
+    (1/r^2) d/dr(r^3 d(u/r)/dr); viscous stresses exchange angular momentum only with the walls,
+    budget closes to ~1e-5) or "vector_laplacian" (legacy stencil shared with the LS path)."""
+    height_legacy_swirl_for_validation: bool = False
+    """Silences the warning for height_swirl_advection = "advective" (reproducing old diagnostics)."""
 
     def __post_init__(self) -> None:
+        if (self.free_surface_model == "single_phase_height" and self.height_swirl_advection == "advective"
+                and not self.height_legacy_swirl_for_validation):
+            import warnings
+            warnings.warn("physics.height_swirl_advection='advective' is the legacy NON-conservative swirl "
+                          "transport (V6/V7: 10-80 % angular-momentum error); use it only to reproduce old "
+                          "diagnostics (set height_legacy_swirl_for_validation: true)", UserWarning, stacklevel=2)
         if self.free_surface_model not in FREE_SURFACE_MODELS:
             raise ValueError(
                 f"physics.free_surface_model must be one of {FREE_SURFACE_MODELS}, "

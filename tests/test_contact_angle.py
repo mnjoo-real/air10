@@ -148,17 +148,55 @@ def test_meniscus_bvp_reference_properties():
 
 
 # ------------------------------------------------------- wall models (CFD)
-def test_pinned_static_meniscus_holds_contact_point():
+def _pinned_meniscus(z_pin_offset_dx=None):
+    """theta = 60 meniscus at 0.5 mm from the wall-compatible initial phi.
+    z_pin_offset_dx=None: let the solver auto-capture z_pin from phi
+    (initial_pin_height); otherwise z_pin = BVP wall height + offset * dx."""
+    from air_vortex.pinned_phase import wall_compatible_sdf
+    from air_vortex.single_phase_solver import SinglePhaseSolver
     s, ref = build_meniscus_solver(0.5e-3, 60.0, contact_model="pinned")
-    z0 = s.cfg.wall.pinned_contact_height_m
-    assert z0 == pytest.approx(ref.z_wall, abs=0.02 * s.grid.dr)
+    s.fields.phi = wall_compatible_sdf(s.grid, ref)
+    s.cfg.wall.pinned_contact_height_m = (None if z_pin_offset_dx is None
+                                          else ref.z_wall + z_pin_offset_dx * s.grid.dr)
+    return SinglePhaseSolver(grid=s.grid, cfg=s.cfg, fields=s.fields), ref
+
+
+def _umax(s, t_end=0.1):
     umax = 0.0
-    while s.fields.t < 0.1:
+    while s.fields.t < t_end:
         d = s.step()
         umax = max(umax, d.max_abs_ur_liquid, d.max_abs_uz_liquid)
+    return umax
+
+
+def test_pinned_static_meniscus_holds_contact_point():
+    """CONTRACT: a pinned equilibrium test must pin at the initial interface's
+    own wall height, checked BEFORE time integration (|z_crossing - z_pin|
+    << dx); then the pinned meniscus holds. (The old version let the solver
+    auto-capture z_pin from a curved phi; that capture is biased by
+    ~0.013 dx, see the negative regression below.)"""
+    s, ref = _pinned_meniscus(z_pin_offset_dx=0.0)
+    z0 = s.cfg.wall.pinned_contact_height_m
+    z_cross = wall_contact_points(s.grid, s.fields.phi)
+    assert z_cross.size == 1 and abs(z_cross[0] - z0) < 0.005 * s.grid.dr
+    umax = _umax(s)
     z_cl = wall_contact_points(s.grid, s.fields.phi)
     assert z_cl.size == 1 and abs(z_cl[0] - z0) < 0.05 * s.grid.dr
-    assert umax < 5e-3
+    assert umax < 5e-3                                   # measured 1.4e-3
+
+
+def test_pinned_meniscus_is_sensitive_to_a_small_pin_mismatch():
+    """NEGATIVE REGRESSION (known sensitivity, V4b-P): pinning 0.013 dx away
+    from the interface's wall height -- the size of the bias of the
+    automatic capture initial_pin_height on a curved meniscus -- drives about
+    10x the spurious flow of the consistent pin within 0.1 s."""
+    s0, ref = _pinned_meniscus(z_pin_offset_dx=0.0)
+    s_auto, _ = _pinned_meniscus(z_pin_offset_dx=None)
+    bias = (s_auto.cfg.wall.pinned_contact_height_m - ref.z_wall) / s_auto.grid.dr
+    assert 0.005 < abs(bias) < 0.03                      # measured -0.0133 dx
+    s_mis, _ = _pinned_meniscus(z_pin_offset_dx=-0.013)
+    u0, u_mis = _umax(s0), _umax(s_mis)
+    assert u_mis > 5.0 * u0 and u_mis > 5e-3             # measured 1.4e-3 vs 1.5e-2
 
 
 def test_extrapolate_wall_is_dynamically_unstable_negative_control():

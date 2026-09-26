@@ -1,5 +1,5 @@
 """Liquid / interface / void classification for the single-phase Level-1A
-path (README_rewritten sections 9.1, 14.2).
+path (README sections 9.1, 14.2).
 
 Sign convention (unchanged from the legacy solver):
 

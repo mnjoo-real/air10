@@ -1,5 +1,5 @@
 """Interface-preserving reinitialization with the Russo-Smereka subcell fix
-(single_phase_ls; README_rewritten 9.4).
+(single_phase_ls; README 9.4).
 
     phi_tau + sgn(phi0) (|grad phi| - 1) = 0,    phi(tau=0) = phi0
 
